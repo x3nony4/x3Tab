@@ -1,9 +1,9 @@
 {
   "name": "wxt-vue-starter",
-  "description": "manifest.json description",
-  "private": true,
-  "version": "0.0.0",
   "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "description": "manifest.json description",
   "scripts": {
     "dev": "wxt",
     "dev:firefox": "wxt -b firefox",
@@ -12,15 +12,32 @@
     "zip": "wxt zip",
     "zip:firefox": "wxt zip -b firefox",
     "compile": "vue-tsc --noEmit",
-    "postinstall": "wxt prepare"
+    "postinstall": "wxt prepare",
+    "prepare": "husky",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "vue-tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "vue": "^3.5.29"
   },
   "devDependencies": {
+    "@antfu/eslint-config": "^9.0.0",
+    "@commitlint/cli": "^21.0.2",
+    "@commitlint/config-conventional": "^21.0.2",
     "@wxt-dev/module-vue": "^1.0.3",
+    "eslint": "^10.5.0",
+    "eslint-plugin-format": "^2.0.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8",
     "typescript": "^5.9.3",
+    "vitest": "^4.1.9",
     "vue-tsc": "^3.2.5",
     "wxt": "^0.20.26"
+  },
+  "lint-staged": {
+    "*.{js,ts,jsx,tsx,vue,json,md,yaml}": "eslint --fix"
   }
 }
