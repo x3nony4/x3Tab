@@ -27,6 +27,7 @@
     "@antfu/eslint-config": "^9.0.0",
     "@commitlint/cli": "^21.0.2",
     "@commitlint/config-conventional": "^21.0.2",
+    "@vue/test-utils": "^2.4.11",
     "@wxt-dev/module-vue": "^1.0.3",
     "eslint": "^10.5.0",
     "eslint-plugin-format": "^2.0.1",
