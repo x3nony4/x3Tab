@@ -6,9 +6,11 @@ export default antfu({
         tsconfigPath: 'tsconfig.json'
     },
     vue: true,
+    markdown: false,
     formatters: {
         css: true,
-        html: true
+        html: true,
+        markdown: true
     },
     ignores: [
         '**/.output',
