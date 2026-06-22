@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { onMounted } from 'vue'
 import { useTheme } from '../../composables/useTheme'
+import Clock from './components/Clock.vue'
 
 const { theme, toggle, init } = useTheme()
 
@@ -20,10 +21,7 @@ onMounted(() => {
     </button>
 
     <div :class="$style.clockArea">
-      <!-- TODO: Clock component (#3) -->
-      <div :class="$style.placeholder">
-        00:00:00
-      </div>
+      <Clock />
     </div>
 
     <div :class="$style.searchArea">
@@ -110,13 +108,7 @@ onMounted(() => {
   justify-content: center;
   color: var(--c-text-tertiary);
 }
-.clockArea .placeholder {
-  font-size: 96px;
-  font-weight: 200;
-  letter-spacing: -2px;
-  color: var(--c-text-primary);
-  line-height: 1;
-}
+
 .searchArea .placeholder {
   height: 52px;
   background: var(--c-search-bg);
