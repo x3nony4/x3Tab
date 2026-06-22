@@ -1,24 +1,33 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue'
+import type { SearchEngine } from '../engines'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useStorage } from '../../../composables/useStorage'
+import { DEFAULT_ENGINES } from '../engines'
+import EnginePanel from './EnginePanel.vue'
 
-interface SearchEngine {
-    id: string
-    name: string
-    urlTemplate: string
-}
-
-const ENGINES: SearchEngine[] = [
-    { id: 'baidu', name: 'Baidu', urlTemplate: 'https://www.baidu.com/s?wd=%s' },
-    { id: 'google', name: 'Google', urlTemplate: 'https://www.google.com/search?q=%s' },
-    { id: 'bing', name: 'Bing', urlTemplate: 'https://www.bing.com/search?q=%s' },
-    { id: 'duckduckgo', name: 'DuckDuckGo', urlTemplate: 'https://duckduckgo.com/?q=%s' }
-]
+const { value: engines } = useStorage<SearchEngine[]>('engines', DEFAULT_ENGINES)
 
 const activeIndex = ref(0)
 const query = ref('')
 const isFocused = ref(false)
+const showPanel = ref(false)
+const wrapperRef = ref<HTMLElement>()
 
-const currentEngine = computed(() => ENGINES[activeIndex.value])
+function onClickOutside(e: MouseEvent) {
+    if (showPanel.value && wrapperRef.value && !wrapperRef.value.contains(e.target as Node)) {
+        showPanel.value = false
+    }
+}
+
+onMounted(() => {
+    document.addEventListener('click', onClickOutside, true)
+})
+
+onBeforeUnmount(() => {
+    document.removeEventListener('click', onClickOutside, true)
+})
+
+const currentEngine = computed(() => engines.value[activeIndex.value] ?? engines.value[0])
 
 function go() {
     const q = encodeURIComponent(query.value.trim())
@@ -29,33 +38,56 @@ function go() {
 function onKeydown(e: KeyboardEvent) {
     if (e.key === 'Tab') {
         e.preventDefault()
-        activeIndex.value = (activeIndex.value + 1) % ENGINES.length
+        activeIndex.value = (activeIndex.value + 1) % engines.value.length
     }
     else if (e.key === 'Enter') {
         go()
     }
 }
+
+function togglePanel() {
+    showPanel.value = !showPanel.value
+}
+
+function onSelectEngine(engine: SearchEngine) {
+    const idx = engines.value.findIndex(e => e.id === engine.id)
+    if (idx !== -1) {
+        activeIndex.value = idx
+    }
+    showPanel.value = false
+}
 </script>
 
 <template>
-  <div :class="[$style.bar, isFocused && $style.focused]">
-    <div :class="$style.icon">
-      {{ currentEngine.name[0] }}
+  <div ref="wrapperRef" :class="[$style.wrapper, showPanel && $style.wrapperOpen]">
+    <div :class="[$style.bar, isFocused && $style.focused]">
+      <div :class="$style.icon">
+        {{ currentEngine.name[0] }}
+      </div>
+      <span :class="[$style.arrow, showPanel && $style.arrowOpen]" @click="togglePanel">&#9660;</span>
+      <input
+        v-model="query"
+        :class="$style.input"
+        type="text"
+        placeholder="搜索或输入网址"
+        @keydown="onKeydown"
+        @focus="isFocused = true"
+        @blur="isFocused = false"
+      >
     </div>
-    <span :class="$style.arrow">&#9660;</span>
-    <input
-      v-model="query"
-      :class="$style.input"
-      type="text"
-      placeholder="搜索或输入网址"
-      @keydown="onKeydown"
-      @focus="isFocused = true"
-      @blur="isFocused = false"
-    >
+    <EnginePanel
+      :visible="showPanel"
+      @close="showPanel = false"
+      @select="onSelectEngine"
+    />
   </div>
 </template>
 
 <style module>
+.wrapper {
+  position: relative;
+}
+
 .bar {
   width: 100%;
   height: 52px;
@@ -66,7 +98,13 @@ function onKeydown(e: KeyboardEvent) {
   background: var(--c-search-bg);
   border: 1px solid var(--c-search-border);
   border-radius: 12px;
-  transition: border-color 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    border-radius 0.2s ease;
+}
+
+.wrapperOpen .bar {
+  border-radius: 12px 12px 0 0;
 }
 
 .focused {
@@ -96,6 +134,19 @@ function onKeydown(e: KeyboardEvent) {
   flex-shrink: 0;
   user-select: none;
   line-height: 1;
+  cursor: pointer;
+  padding: 4px 2px;
+  transition:
+    color 0.15s,
+    transform 0.2s;
+}
+
+.arrow:hover {
+  color: var(--c-text-secondary);
+}
+
+.arrowOpen {
+  transform: rotate(180deg);
 }
 
 .input {
