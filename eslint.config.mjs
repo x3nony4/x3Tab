@@ -13,7 +13,10 @@ export default antfu({
     ignores: [
         '**/.output',
         '**/.wxt',
-        '**/dist'
+        '**/dist',
+        '**/test/**',
+        '**/*.test.*',
+        '**/*.spec.*'
     ],
     rules: {
         'pnpm/yaml-enforce-settings': 'off',
