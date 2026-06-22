@@ -2,6 +2,7 @@
 import { onMounted } from 'vue'
 import { useTheme } from '../../composables/useTheme'
 import Clock from './components/Clock.vue'
+import SearchBar from './components/SearchBar.vue'
 
 const { theme, toggle, init } = useTheme()
 
@@ -25,10 +26,7 @@ onMounted(() => {
     </div>
 
     <div :class="$style.searchArea">
-      <!-- TODO: Search Bar component (#4) -->
-      <div :class="$style.placeholder">
-        搜索
-      </div>
+      <SearchBar />
     </div>
 
     <div :class="$style.dockArea">
@@ -109,13 +107,6 @@ onMounted(() => {
   color: var(--c-text-tertiary);
 }
 
-.searchArea .placeholder {
-  height: 52px;
-  background: var(--c-search-bg);
-  border: 1px solid var(--c-search-border);
-  border-radius: 12px;
-  font-size: 18px;
-}
 .dockArea .placeholder {
   padding: 12px 20px;
   background: var(--c-dock-bg);
@@ -139,6 +130,7 @@ onMounted(() => {
   --c-border-hover: rgba(255, 255, 255, 0.2);
   --c-search-bg: rgba(255, 255, 255, 0.04);
   --c-search-border: rgba(255, 255, 255, 0.06);
+  --c-search-border-focus: rgba(255, 255, 255, 0.15);
   --c-dock-bg: rgba(28, 28, 30, 0.6);
   --c-dock-blur: blur(24px);
   --c-dock-border: rgba(255, 255, 255, 0.05);
@@ -154,6 +146,7 @@ onMounted(() => {
   --c-border-hover: rgba(0, 0, 0, 0.2);
   --c-search-bg: rgba(0, 0, 0, 0.04);
   --c-search-border: rgba(0, 0, 0, 0.08);
+  --c-search-border-focus: rgba(0, 0, 0, 0.2);
   --c-dock-bg: rgba(245, 245, 247, 0.6);
   --c-dock-blur: blur(24px);
   --c-dock-border: rgba(0, 0, 0, 0.05);
