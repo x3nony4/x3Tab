@@ -18,7 +18,9 @@ export function useStorage<T>(key: string, fallback: T): {
     const value = ref<T>(fallback) as Ref<T>
 
     item.getValue().then((v) => {
-        value.value = v
+        if (v !== null && v !== undefined) {
+            value.value = v
+        }
     }).catch((err) => {
         console.error(err)
     })

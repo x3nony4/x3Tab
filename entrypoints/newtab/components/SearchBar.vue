@@ -1,33 +1,20 @@
 <script lang="ts" setup>
 import type { SearchEngine } from '../engines'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useStorage } from '../../../composables/useStorage'
 import { DEFAULT_ENGINES } from '../engines'
 import EnginePanel from './EnginePanel.vue'
 
 const { value: engines } = useStorage<SearchEngine[]>('engines', DEFAULT_ENGINES)
 
+const engineList = computed(() => Array.isArray(engines.value) ? engines.value : DEFAULT_ENGINES)
+
 const activeIndex = ref(0)
 const query = ref('')
 const isFocused = ref(false)
 const showPanel = ref(false)
-const wrapperRef = ref<HTMLElement>()
 
-function onClickOutside(e: MouseEvent) {
-    if (showPanel.value && wrapperRef.value && !wrapperRef.value.contains(e.target as Node)) {
-        showPanel.value = false
-    }
-}
-
-onMounted(() => {
-    document.addEventListener('click', onClickOutside, true)
-})
-
-onBeforeUnmount(() => {
-    document.removeEventListener('click', onClickOutside, true)
-})
-
-const currentEngine = computed(() => engines.value[activeIndex.value] ?? engines.value[0])
+const currentEngine = computed(() => engineList.value[activeIndex.value] ?? engineList.value[0])
 
 function go() {
     const q = encodeURIComponent(query.value.trim())
@@ -38,7 +25,7 @@ function go() {
 function onKeydown(e: KeyboardEvent) {
     if (e.key === 'Tab') {
         e.preventDefault()
-        activeIndex.value = (activeIndex.value + 1) % engines.value.length
+        activeIndex.value = (activeIndex.value + 1) % engineList.value.length
     }
     else if (e.key === 'Enter') {
         go()
@@ -50,7 +37,7 @@ function togglePanel() {
 }
 
 function onSelectEngine(engine: SearchEngine) {
-    const idx = engines.value.findIndex(e => e.id === engine.id)
+    const idx = engineList.value.findIndex(e => e.id === engine.id)
     if (idx !== -1) {
         activeIndex.value = idx
     }
@@ -59,12 +46,14 @@ function onSelectEngine(engine: SearchEngine) {
 </script>
 
 <template>
-  <div ref="wrapperRef" :class="[$style.wrapper, showPanel && $style.wrapperOpen]">
+  <div :class="[$style.wrapper, showPanel && $style.wrapperOpen]">
     <div :class="[$style.bar, isFocused && $style.focused]">
-      <div :class="$style.icon">
-        {{ currentEngine.name[0] }}
-      </div>
-      <span :class="[$style.arrow, showPanel && $style.arrowOpen]" @click="togglePanel">&#9660;</span>
+      <span :class="$style.trigger" @click.stop="togglePanel">
+        <div :class="$style.icon">
+          {{ currentEngine.name[0] }}
+        </div>
+        <span :class="[$style.arrow, showPanel && $style.arrowOpen]">&#9660;</span>
+      </span>
       <input
         v-model="query"
         :class="$style.input"
@@ -111,6 +100,14 @@ function onSelectEngine(engine: SearchEngine) {
   border-color: var(--c-search-border-focus);
 }
 
+.trigger {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  user-select: none;
+}
+
 .icon {
   width: 32px;
   height: 32px;
@@ -134,14 +131,13 @@ function onSelectEngine(engine: SearchEngine) {
   flex-shrink: 0;
   user-select: none;
   line-height: 1;
-  cursor: pointer;
   padding: 4px 2px;
   transition:
     color 0.15s,
     transform 0.2s;
 }
 
-.arrow:hover {
+.trigger:hover .arrow {
   color: var(--c-text-secondary);
 }
 

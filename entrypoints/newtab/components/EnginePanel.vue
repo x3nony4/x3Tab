@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import type { SearchEngine } from '../engines'
-import { ref } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useStorage } from '../../../composables/useStorage'
 import { DEFAULT_ENGINES, generateEngineId, randomEngineColor } from '../engines'
 
-defineProps<{
+const props = defineProps<{
     visible: boolean
 }>()
 
@@ -14,6 +14,34 @@ const emit = defineEmits<{
 }>()
 
 const { value: engines, item: enginesItem } = useStorage<SearchEngine[]>('engines', DEFAULT_ENGINES)
+
+const engineList = computed(() => Array.isArray(engines.value) ? engines.value : DEFAULT_ENGINES)
+
+// ── Click-outside (accounts for teleported overlay) ──
+const panelRef = ref<HTMLElement>()
+const overlayRef = ref<HTMLElement>()
+
+function onClickOutside(e: MouseEvent) {
+    const target = e.target as Node
+    if (panelRef.value?.contains(target))
+        return
+    if (overlayRef.value?.contains(target))
+        return
+    emit('close')
+}
+
+watch(() => props.visible, (v) => {
+    if (v) {
+        document.addEventListener('click', onClickOutside)
+    }
+    else {
+        document.removeEventListener('click', onClickOutside)
+    }
+})
+
+onBeforeUnmount(() => {
+    document.removeEventListener('click', onClickOutside)
+})
 
 // ── Add form ──
 const showAddForm = ref(false)
@@ -56,7 +84,7 @@ async function confirmAdd() {
         color: randomEngineColor()
     }
 
-    engines.value = [...engines.value, fresh]
+    engines.value = [...engineList.value, fresh]
     await enginesItem.setValue(engines.value)
     showAddForm.value = false
 }
@@ -72,11 +100,11 @@ function showToast(msg: string) {
 
 // ── Delete ──
 async function deleteEngine(id: string) {
-    if (engines.value.length <= 1) {
+    if (engineList.value.length <= 1) {
         showToast('至少保留一个搜索引擎')
         return
     }
-    engines.value = engines.value.filter(e => e.id !== id)
+    engines.value = engineList.value.filter(e => e.id !== id)
     await enginesItem.setValue(engines.value)
 }
 
@@ -89,10 +117,10 @@ function selectEngine(engine: SearchEngine) {
 
 <template>
   <Transition name="panel">
-    <div v-if="visible" :class="$style.panel">
+    <div v-if="visible" ref="panelRef" :class="$style.panel">
       <div :class="$style.grid">
         <div
-          v-for="engine in engines"
+          v-for="engine in engineList"
           :key="engine.id"
           :class="$style.item"
           @click="selectEngine(engine)"
@@ -102,7 +130,7 @@ function selectEngine(engine: SearchEngine) {
           </div>
           <span :class="$style.name">{{ engine.name }}</span>
           <button
-            v-if="engines.length > 1"
+            v-if="engineList.length > 1"
             :class="$style.del"
             title="删除引擎"
             @click.stop="deleteEngine(engine.id)"
@@ -127,7 +155,7 @@ function selectEngine(engine: SearchEngine) {
 
       <!-- Add form overlay (teleported to body to escape panel overflow/backdrop-filter) -->
       <Teleport to="body">
-        <div v-if="showAddForm" :class="$style.overlay" @click.self="cancelAdd">
+        <div v-if="showAddForm" ref="overlayRef" :class="$style.overlay" @click.self="cancelAdd">
           <div :class="$style.form">
             <div :class="$style.formTitle">
               添加搜索引擎
