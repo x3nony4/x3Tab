@@ -2,7 +2,7 @@ import { readonly, watch } from 'vue'
 import { storage } from '#imports'
 import { useStorage } from './useStorage'
 
-export type Theme = 'dark' | 'light'
+type Theme = 'dark' | 'light'
 
 export function useTheme() {
     const { value: theme, item } = useStorage<Theme>('theme', 'dark')

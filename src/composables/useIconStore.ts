@@ -5,7 +5,7 @@ const iconStore = defineStore<{ id: string, data: string }>({
     storeName: 'icons'
 })
 
-export interface IconStore {
+interface IconStore {
     get: (id: string) => Promise<string | null>
     set: (id: string, dataUrl: string) => Promise<void>
     remove: (id: string) => Promise<void>
