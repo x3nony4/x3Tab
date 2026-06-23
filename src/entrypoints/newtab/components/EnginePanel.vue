@@ -1,47 +1,19 @@
 <script lang="ts" setup>
 import type { SearchEngine } from '../engines'
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { DialogContent, DialogOverlay, DialogRoot, DialogTitle, PopoverContent } from 'reka-ui'
+import { computed, inject, ref } from 'vue'
 import { useStorage } from '../../../composables/useStorage'
 import { DEFAULT_ENGINES, generateEngineId, randomEngineColor } from '../engines'
 
-const props = defineProps<{
-    visible: boolean
-}>()
-
 const emit = defineEmits<{
-    close: []
     select: [engine: SearchEngine]
 }>()
+
+const showToast = inject<(msg: string) => void>('showToast', () => {})
 
 const { value: engines, item: enginesItem } = useStorage<SearchEngine[]>('engines', DEFAULT_ENGINES)
 
 const engineList = computed(() => Array.isArray(engines.value) ? engines.value : DEFAULT_ENGINES)
-
-// ── Click-outside (accounts for teleported overlay) ──
-const panelRef = ref<HTMLElement>()
-const overlayRef = ref<HTMLElement>()
-
-function onClickOutside(e: MouseEvent) {
-    const target = e.target as Node
-    if (panelRef.value?.contains(target))
-        return
-    if (overlayRef.value?.contains(target))
-        return
-    emit('close')
-}
-
-watch(() => props.visible, (v) => {
-    if (v) {
-        document.addEventListener('click', onClickOutside)
-    }
-    else {
-        document.removeEventListener('click', onClickOutside)
-    }
-})
-
-onBeforeUnmount(() => {
-    document.removeEventListener('click', onClickOutside)
-})
 
 // ── Add form ──
 const showAddForm = ref(false)
@@ -89,15 +61,6 @@ async function confirmAdd() {
     showAddForm.value = false
 }
 
-// ── Toast ──
-const toast = ref('')
-function showToast(msg: string) {
-    toast.value = msg
-    setTimeout(() => {
-        toast.value = ''
-    }, 2000)
-}
-
 // ── Delete ──
 async function deleteEngine(id: string) {
     if (engineList.value.length <= 1) {
@@ -111,333 +74,142 @@ async function deleteEngine(id: string) {
 // ── Select ──
 function selectEngine(engine: SearchEngine) {
     emit('select', engine)
-    emit('close')
 }
 </script>
 
 <template>
-  <Transition name="panel">
-    <div v-if="visible" ref="panelRef" :class="$style.panel">
-      <div :class="$style.grid">
+  <PopoverContent
+    side="bottom"
+    align="start"
+    :side-offset="4"
+    class="engine-panel w-[var(--search-width)] rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface-elevated)] p-4 backdrop-blur-[16px] z-50 overflow-hidden"
+  >
+    <!-- Engine grid -->
+    <div class="engine-grid flex gap-3 flex-wrap">
+      <div
+        v-for="engine in engineList"
+        :key="engine.id"
+        class="engine-item group relative flex flex-col items-center gap-1.5 cursor-pointer select-none p-1 rounded-lg transition-colors hover:bg-white/[0.06]"
+        @click="selectEngine(engine)"
+      >
         <div
-          v-for="engine in engineList"
-          :key="engine.id"
-          :class="$style.item"
-          @click="selectEngine(engine)"
+          class="engine-icon w-10 h-10 rounded-full flex items-center justify-center text-white text-base font-semibold shrink-0"
+          :style="{ background: engine.color }"
         >
-          <div :class="$style.icon" :style="{ background: engine.color }">
-            {{ engine.name[0].toUpperCase() }}
-          </div>
-          <span :class="$style.name">{{ engine.name }}</span>
-          <button
-            v-if="engineList.length > 1"
-            :class="$style.del"
-            title="删除引擎"
-            @click.stop="deleteEngine(engine.id)"
-          >
-            &times;
-          </button>
+          {{ engine.name[0].toUpperCase() }}
         </div>
-
-        <div :class="$style.item" @click="openAddForm">
-          <div :class="[$style.icon, $style.addIcon]">
-            +
-          </div>
-          <span :class="$style.name">添加</span>
-        </div>
+        <span class="engine-name text-[11px] text-[var(--color-text-secondary)] max-w-[64px] overflow-hidden text-ellipsis whitespace-nowrap">
+          {{ engine.name }}
+        </span>
+        <button
+          v-if="engineList.length > 1"
+          class="del-btn absolute -top-0.5 -right-0.5 w-[18px] h-[18px] rounded-full border-none bg-[var(--color-text-tertiary)] text-[var(--color-bg)] text-[13px] leading-none cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+          title="删除引擎"
+          @click.stop="deleteEngine(engine.id)"
+        >
+          &times;
+        </button>
       </div>
 
-      <Transition name="toast">
-        <div v-if="toast" :class="$style.toast">
-          {{ toast }}
+      <div
+        class="add-btn-item group relative flex flex-col items-center gap-1.5 cursor-pointer select-none p-1 rounded-lg transition-colors hover:bg-white/[0.06]"
+        @click="openAddForm"
+      >
+        <div class="add-icon w-10 h-10 rounded-full bg-[var(--color-border)] text-[var(--color-text-secondary)] text-xl font-normal flex items-center justify-center shrink-0 transition-colors group-hover:bg-[var(--color-border-hover)]">
+          +
         </div>
-      </Transition>
-
-      <!-- Add form overlay (teleported to body to escape panel overflow/backdrop-filter) -->
-      <Teleport to="body">
-        <div v-if="showAddForm" ref="overlayRef" :class="$style.overlay" @click.self="cancelAdd">
-          <div :class="$style.form">
-            <div :class="$style.formTitle">
-              添加搜索引擎
-            </div>
-
-            <label :class="$style.label">
-              <span>名称</span>
-              <input v-model="newName" :class="$style.input" type="text" placeholder="例如：GitHub" @keydown.enter="confirmAdd">
-            </label>
-
-            <label :class="$style.label">
-              <span>URL 模板</span>
-              <input v-model="newUrl" :class="$style.input" type="text" placeholder="例如：https://github.com/search?q=%s" @keydown.enter="confirmAdd">
-            </label>
-
-            <div v-if="addError" :class="$style.error">
-              {{ addError }}
-            </div>
-
-            <div :class="$style.formActions">
-              <button :class="$style.btnCancel" @click="cancelAdd">
-                取消
-              </button>
-              <button :class="$style.btnConfirm" @click="confirmAdd">
-                添加
-              </button>
-            </div>
-          </div>
-        </div>
-      </Teleport>
+        <span class="engine-name text-[11px] text-[var(--color-text-secondary)] max-w-[64px] overflow-hidden text-ellipsis whitespace-nowrap">添加</span>
+      </div>
     </div>
-  </Transition>
+
+    <!-- Add form dialog -->
+    <DialogRoot v-model:open="showAddForm">
+      <DialogOverlay class="fixed inset-0 z-[100] bg-black/40" />
+      <DialogContent class="fixed left-1/2 top-1/2 z-[100] w-[360px] max-w-[90vw] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-[var(--color-bg)] border border-[var(--color-border)] p-6 text-[var(--color-text-primary)]">
+        <DialogTitle class="mb-5 text-base font-semibold">
+          添加搜索引擎
+        </DialogTitle>
+
+        <label class="mb-3.5 block">
+          <span class="block mb-1.5 text-xs text-[var(--color-text-secondary)]">名称</span>
+          <input
+            v-model="newName"
+            class="w-full h-10 px-3 bg-[var(--color-surface-elevated)] border border-[var(--color-surface-border)] rounded-lg text-sm text-[var(--color-text-primary)] outline-none transition-colors focus:border-[var(--color-surface-border-focus)]"
+            type="text"
+            placeholder="例如：GitHub"
+            @keydown.enter="confirmAdd"
+          >
+        </label>
+
+        <label class="mb-3.5 block">
+          <span class="block mb-1.5 text-xs text-[var(--color-text-secondary)]">URL 模板</span>
+          <input
+            v-model="newUrl"
+            class="w-full h-10 px-3 bg-[var(--color-surface-elevated)] border border-[var(--color-surface-border)] rounded-lg text-sm text-[var(--color-text-primary)] outline-none transition-colors focus:border-[var(--color-surface-border-focus)]"
+            type="text"
+            placeholder="例如：https://github.com/search?q=%s"
+            @keydown.enter="confirmAdd"
+          >
+        </label>
+
+        <div v-if="addError" class="text-[var(--color-danger)] text-xs mb-3">
+          {{ addError }}
+        </div>
+
+        <div class="flex justify-end gap-2 mt-1">
+          <button
+            class="h-9 px-4 rounded-lg border-none bg-white/10 text-sm text-[var(--color-text-primary)] cursor-pointer transition-opacity hover:opacity-85"
+            @click="cancelAdd"
+          >
+            取消
+          </button>
+          <button
+            class="h-9 px-4 rounded-lg border-none bg-[var(--color-accent)] text-sm text-white cursor-pointer transition-opacity hover:opacity-85"
+            @click="confirmAdd"
+          >
+            添加
+          </button>
+        </div>
+      </DialogContent>
+    </DialogRoot>
+  </PopoverContent>
 </template>
 
-<style module>
-.panel {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  margin-top: 8px;
-  padding: 16px;
-  background: var(--c-card-bg, rgba(255, 255, 255, 0.06));
-  border: 1px solid var(--c-search-border);
-  border-radius: 12px;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  z-index: 50;
-  overflow: hidden;
-}
-
-/* ── Grid ── */
-.grid {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-/* ── Engine item ── */
-.item {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  user-select: none;
-  padding: 4px;
-  border-radius: 8px;
-  transition: background 0.15s;
-}
-
-.item:hover {
-  background: var(--c-hover-bg, rgba(255, 255, 255, 0.06));
-}
-
-.icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 16px;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-.addIcon {
-  background: var(--c-border) !important;
-  color: var(--c-text-secondary);
-  font-size: 20px;
-  font-weight: 400;
-  transition: background 0.15s;
-}
-
-.item:hover .addIcon {
-  background: var(--c-border-hover) !important;
-}
-
-.name {
-  font-size: 11px;
-  color: var(--c-text-secondary);
-  max-width: 64px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ── Delete button ── */
-.del {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: none;
-  background: var(--c-text-tertiary);
-  color: var(--c-bg);
-  font-size: 13px;
-  line-height: 1;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.item:hover .del {
-  opacity: 1;
-}
-
-.del:hover {
-  background: #e74c3c;
-  color: #fff;
-}
-
-/* ── Form overlay ── */
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-
-.form {
-  background: var(--c-bg);
-  border: 1px solid var(--c-border);
-  border-radius: 14px;
-  padding: 24px;
-  width: 360px;
-  max-width: 90vw;
-}
-
-.formTitle {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--c-text-primary);
-  margin-bottom: 20px;
-}
-
-.label {
-  display: block;
-  margin-bottom: 14px;
-}
-
-.label span {
-  display: block;
-  font-size: 12px;
-  color: var(--c-text-secondary);
-  margin-bottom: 6px;
-}
-
-.input {
-  width: 100%;
-  height: 40px;
-  padding: 0 12px;
-  background: var(--c-search-bg);
-  border: 1px solid var(--c-search-border);
-  border-radius: 8px;
-  color: var(--c-text-primary);
-  font-size: 14px;
-  font-family: inherit;
-  outline: none;
-}
-
-.input:focus {
-  border-color: var(--c-search-border-focus);
-}
-
-.error {
-  color: #e74c3c;
-  font-size: 12px;
-  margin-bottom: 12px;
-}
-
-.formActions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.btnCancel,
-.btnConfirm {
-  height: 36px;
-  padding: 0 16px;
-  border-radius: 8px;
-  border: none;
-  font-size: 13px;
-  font-family: inherit;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-
-.btnCancel {
-  background: var(--c-search-bg);
-  color: var(--c-text-secondary);
-}
-
-.btnConfirm {
-  background: #4285f4;
-  color: #fff;
-}
-
-.btnCancel:hover,
-.btnConfirm:hover {
-  opacity: 0.85;
-}
-
-/* ── Toast ── */
-.toast {
-  position: absolute;
-  top: -48px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 8px 20px;
-  background: var(--c-text-primary);
-  color: var(--c-bg);
-  border-radius: 8px;
-  font-size: 13px;
-  white-space: nowrap;
-  z-index: 60;
-  pointer-events: none;
-}
-</style>
-
-<!-- Transition classes (scoped to this component via panel- prefix) -->
 <style>
-.panel-enter-active {
-  transition:
-    max-height 0.25s ease,
-    opacity 0.2s ease;
-  max-height: 300px;
+/* ── Popover transition ── */
+.engine-panel[data-state='open'] {
+  animation: engine-panel-in 0.2s ease;
 }
 
-.panel-leave-active {
-  transition:
-    max-height 0.2s ease,
-    opacity 0.15s ease;
-  max-height: 300px;
+.engine-panel[data-state='closed'] {
+  animation: engine-panel-out 0.15s ease;
 }
 
-.panel-enter-from,
-.panel-leave-to {
-  max-height: 0;
-  opacity: 0;
+@keyframes engine-panel-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
-.toast-enter-active,
-.toast-leave-active {
-  transition: opacity 0.2s ease;
+@keyframes engine-panel-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.97);
+  }
 }
 
-.toast-enter-from,
-.toast-leave-to {
-  opacity: 0;
+/* ── Delete button hover color ── */
+.del-btn:hover {
+  background: var(--color-danger) !important;
+  color: #fff !important;
 }
 </style>

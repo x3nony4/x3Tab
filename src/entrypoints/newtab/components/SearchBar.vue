@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { SearchEngine } from '../engines'
+import { PopoverAnchor, PopoverRoot, PopoverTrigger } from 'reka-ui'
 import { computed, ref } from 'vue'
 import { useStorage } from '../../../composables/useStorage'
 import { DEFAULT_ENGINES } from '../engines'
@@ -32,10 +33,6 @@ function onKeydown(e: KeyboardEvent) {
     }
 }
 
-function togglePanel() {
-    showPanel.value = !showPanel.value
-}
-
 function onSelectEngine(engine: SearchEngine) {
     const idx = engineList.value.findIndex(e => e.id === engine.id)
     if (idx !== -1) {
@@ -46,37 +43,33 @@ function onSelectEngine(engine: SearchEngine) {
 </script>
 
 <template>
-  <div :class="[$style.wrapper, showPanel && $style.wrapperOpen]">
-    <div :class="[$style.bar, isFocused && $style.focused]">
-      <span :class="$style.trigger" @click.stop="togglePanel">
-        <div :class="$style.icon">
-          {{ currentEngine.name[0] }}
-        </div>
-        <span :class="[$style.arrow, showPanel && $style.arrowOpen]">&#9660;</span>
-      </span>
-      <input
-        v-model="query"
-        :class="$style.input"
-        type="text"
-        placeholder="搜索或输入网址"
-        @keydown="onKeydown"
-        @focus="isFocused = true"
-        @blur="isFocused = false"
-      >
-    </div>
-    <EnginePanel
-      :visible="showPanel"
-      @close="showPanel = false"
-      @select="onSelectEngine"
-    />
-  </div>
+  <PopoverRoot v-model:open="showPanel">
+    <PopoverAnchor class="relative w-[var(--search-width)]">
+      <div :class="[$style.bar, isFocused && $style.focused, showPanel && $style.barOpen]">
+        <PopoverTrigger as-child>
+          <span :class="$style.trigger">
+            <div :class="$style.icon">
+              {{ currentEngine.name[0] }}
+            </div>
+            <span :class="[$style.arrow, showPanel && $style.arrowOpen]">&#9660;</span>
+          </span>
+        </PopoverTrigger>
+        <input
+          v-model="query"
+          :class="$style.input"
+          type="text"
+          placeholder="搜索或输入网址"
+          @keydown="onKeydown"
+          @focus="isFocused = true"
+          @blur="isFocused = false"
+        >
+      </div>
+    </PopoverAnchor>
+    <EnginePanel @select="onSelectEngine" />
+  </PopoverRoot>
 </template>
 
 <style module>
-.wrapper {
-  position: relative;
-}
-
 .bar {
   width: 100%;
   height: 52px;
@@ -92,7 +85,7 @@ function onSelectEngine(engine: SearchEngine) {
     border-radius 0.2s ease;
 }
 
-.wrapperOpen .bar {
+.barOpen {
   border-radius: 12px 12px 0 0;
 }
 
