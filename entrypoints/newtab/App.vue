@@ -2,6 +2,7 @@
 import { onMounted } from 'vue'
 import { useTheme } from '../../composables/useTheme'
 import Clock from './components/Clock.vue'
+import DockBar from './components/DockBar.vue'
 import SearchBar from './components/SearchBar.vue'
 
 const { theme, toggle, init } = useTheme()
@@ -30,10 +31,7 @@ onMounted(() => {
     </div>
 
     <div :class="$style.dockArea">
-      <!-- TODO: Docker Bar component (#5) -->
-      <div :class="$style.placeholder">
-        Dock
-      </div>
+      <DockBar />
     </div>
   </div>
 </template>
@@ -97,24 +95,6 @@ onMounted(() => {
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-}
-
-/* Placeholder */
-.placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--c-text-tertiary);
-}
-
-.dockArea .placeholder {
-  padding: 12px 20px;
-  background: var(--c-dock-bg);
-  backdrop-filter: var(--c-dock-blur);
-  -webkit-backdrop-filter: var(--c-dock-blur);
-  border-radius: 16px 16px 0 0;
-  border: 1px solid var(--c-dock-border);
-  border-bottom: none;
 }
 </style>
 
