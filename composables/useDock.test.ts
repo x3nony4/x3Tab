@@ -95,9 +95,9 @@ describe('useDock', () => {
     describe('add', () => {
         it('adds shortcut with generated id', () => {
             const { shortcuts, add } = useDock()
-            const ok = add(makeShortcut())
+            const created = add(makeShortcut())
 
-            expect(ok).toBe(true)
+            expect(created).not.toBeNull()
             expect(shortcuts.value).toHaveLength(1)
             expect(shortcuts.value[0].id).toBe('test-uuid-0')
             expect(shortcuts.value[0].name).toBe('GitHub')
@@ -112,14 +112,14 @@ describe('useDock', () => {
             expect(stored[0].name).toBe('GitHub')
         })
 
-        it('returns false when at MAX_SHORTCUTS', () => {
+        it('returns null when at MAX_SHORTCUTS', () => {
             const { add } = useDock()
             for (let i = 0; i < MAX_SHORTCUTS; i++) {
                 add(makeShortcut({ name: `S${i}`, url: `https://x.com/${i}` }))
             }
-            const ok = add(makeShortcut({ name: 'Extra', url: 'https://extra.com' }))
+            const created = add(makeShortcut({ name: 'Extra', url: 'https://extra.com' }))
 
-            expect(ok).toBe(false)
+            expect(created).toBeNull()
         })
     })
 

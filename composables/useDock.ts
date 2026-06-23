@@ -16,13 +16,14 @@ export function useDock() {
     const { value: shortcuts, item } = useStorage<Shortcut[]>('shortcuts', [])
     const editMode = ref(false)
 
-    function add(shortcut: Omit<Shortcut, 'id'>): boolean {
+    function add(shortcut: Omit<Shortcut, 'id'>): Shortcut | null {
         if (shortcuts.value.length >= MAX_SHORTCUTS)
-            return false
+            return null
         const id = crypto.randomUUID()
-        shortcuts.value = [...shortcuts.value, { id, ...shortcut }]
+        const created: Shortcut = { id, ...shortcut }
+        shortcuts.value = [...shortcuts.value, created]
         item.setValue(shortcuts.value).catch(err => console.error(err))
-        return true
+        return created
     }
 
     function update(id: string, patch: Partial<Omit<Shortcut, 'id'>>): void {

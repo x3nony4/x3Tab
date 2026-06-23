@@ -1,15 +1,19 @@
 <script lang="ts" setup>
 import type { Shortcut } from '../../../composables/useDock'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useIconStore } from '../../../composables/useIconStore'
 
 const props = defineProps<{
     shortcut: Shortcut
     editMode: boolean
+    index: number
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
     click: [id: string]
+    delete: [id: string]
+    edit: [id: string]
+    dragstart: [index: number]
 }>()
 
 const iconStore = useIconStore()
@@ -19,11 +23,12 @@ const onlineError = ref(false)
 const solidColor = computedSolidColor()
 const firstLetter = props.shortcut.name.charAt(0).toUpperCase()
 
+const shakeDelay = computed(() => `${props.index * 0.05}s`)
+
 function computedSolidColor(): string {
     if (props.shortcut.iconType === 'solid' && props.shortcut.solidColor) {
         return props.shortcut.solidColor
     }
-    // Default fallback color for online-error and unspecified solid
     return '#555'
 }
 
@@ -38,9 +43,24 @@ function getFaviconUrl(url: string): string {
 }
 
 function handleClick() {
-    if (!props.editMode) {
-        window.location.href = props.shortcut.url
+    if (props.editMode)
+        return
+    window.location.href = props.shortcut.url
+}
+
+function handleDelete() {
+    emit('delete', props.shortcut.id)
+}
+
+function handleEdit() {
+    emit('edit', props.shortcut.id)
+}
+
+function handleDragStart(e: DragEvent) {
+    if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = 'move'
     }
+    emit('dragstart', props.index)
 }
 
 onMounted(async () => {
@@ -55,34 +75,59 @@ onMounted(async () => {
 
 <template>
   <div
-    :class="$style.item"
+    :class="[$style.item, editMode && $style.shaking]"
+    :style="editMode ? { animationDelay: shakeDelay } : {}"
     :title="shortcut.name"
+    :draggable="editMode"
     @click="handleClick"
+    @dragstart="handleDragStart"
   >
-    <!-- Online favicon -->
-    <img
-      v-if="shortcut.iconType === 'online' && !onlineError"
-      :class="$style.icon"
-      :src="getFaviconUrl(shortcut.url)"
-      :alt="shortcut.name"
-      @error="onlineError = true"
+    <!-- Delete badge -->
+    <button
+      v-if="editMode"
+      :class="$style.deleteBadge"
+      title="删除"
+      @click.stop="handleDelete"
     >
+      &minus;
+    </button>
 
-    <!-- Upload custom icon -->
-    <img
-      v-else-if="shortcut.iconType === 'upload' && uploadSrc"
-      :class="$style.icon"
-      :src="uploadSrc"
-      :alt="shortcut.name"
-    >
+    <!-- Icon wrapper -->
+    <div :class="$style.iconWrap">
+      <!-- Online favicon -->
+      <img
+        v-if="shortcut.iconType === 'online' && !onlineError"
+        :class="$style.icon"
+        :src="getFaviconUrl(shortcut.url)"
+        :alt="shortcut.name"
+        @error="onlineError = true"
+      >
 
-    <!-- Solid / fallback: colored letter -->
-    <div
-      v-else
-      :class="$style.icon"
-      :style="{ backgroundColor: solidColor }"
-    >
-      <span :class="$style.letter">{{ firstLetter }}</span>
+      <!-- Upload custom icon -->
+      <img
+        v-else-if="shortcut.iconType === 'upload' && uploadSrc"
+        :class="$style.icon"
+        :src="uploadSrc"
+        :alt="shortcut.name"
+      >
+
+      <!-- Solid / fallback -->
+      <div
+        v-else
+        :class="$style.icon"
+        :style="{ backgroundColor: solidColor }"
+      >
+        <span :class="$style.letter">{{ firstLetter }}</span>
+      </div>
+
+      <!-- Hover mask (edit mode only) -->
+      <div
+        v-if="editMode"
+        :class="$style.hoverMask"
+        @click.stop="handleEdit"
+      >
+        <span :class="$style.editIcon">&#9998;</span>
+      </div>
     </div>
 
     <span :class="$style.name">{{ shortcut.name }}</span>
@@ -99,6 +144,11 @@ onMounted(async () => {
   flex-shrink: 0;
   min-width: 0;
   max-width: 72px;
+  position: relative;
+}
+
+.iconWrap {
+  position: relative;
 }
 
 .icon {
@@ -127,5 +177,67 @@ onMounted(async () => {
   white-space: nowrap;
   max-width: 100%;
   text-align: center;
+}
+
+/* Shaking */
+.shaking {
+  animation: wiggle 0.3s ease-in-out infinite;
+}
+
+/* Delete badge */
+.deleteBadge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #e74c3c;
+  color: #fff;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  padding: 0;
+}
+
+/* Hover mask */
+.hoverMask {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.iconWrap:hover .hoverMask {
+  opacity: 1;
+}
+
+.editIcon {
+  font-size: 18px;
+  color: #fff;
+}
+
+@keyframes wiggle {
+  0%,
+  100% {
+    rotate: 0;
+  }
+  25% {
+    rotate: -1.5deg;
+  }
+  75% {
+    rotate: 1.5deg;
+  }
 }
 </style>
