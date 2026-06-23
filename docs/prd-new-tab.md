@@ -137,17 +137,17 @@ interface SearchEngine {
 
 ### 测试模块
 
-| 模块 | 测试内容 |
-|------|---------|
-| `Clock` | 渲染时分秒；渲染日期格式；每秒更新 |
-| `SearchBar` | 回车跳转；Tab 切换引擎不清空输入；面板展开/收起 |
-| `EnginePanel` | 引擎列表渲染；添加引擎；删除引擎（含至少保留一个的校验） |
-| `Dock` | 快捷方式列表渲染；进入/退出编辑模式；右键菜单 |
-| `ShortcutItem` | 图标渲染（三种类型）；hover 遮罩；编辑卡片弹窗；删除 |
-| `AddShortcut` | 添加按钮渲染；弹出编辑卡片 |
-| `EditCard` | 字段校验（名称/URL 必填）；三种图标类型切换 |
-| `ThemeToggle` | 切换循环；系统偏好初始化；storage 持久化 |
-| `useStorage` | `storage.local` 读写；IndexedDB 读写 |
+| 模块           | 测试内容                                                 |
+| -------------- | -------------------------------------------------------- |
+| `Clock`        | 渲染时分秒；渲染日期格式；每秒更新                       |
+| `SearchBar`    | 回车跳转；Tab 切换引擎不清空输入；面板展开/收起          |
+| `EnginePanel`  | 引擎列表渲染；添加引擎；删除引擎（含至少保留一个的校验） |
+| `Dock`         | 快捷方式列表渲染；进入/退出编辑模式；右键菜单            |
+| `ShortcutItem` | 图标渲染（三种类型）；hover 遮罩；编辑卡片弹窗；删除     |
+| `AddShortcut`  | 添加按钮渲染；弹出编辑卡片                               |
+| `EditCard`     | 字段校验（名称/URL 必填）；三种图标类型切换              |
+| `ThemeToggle`  | 切换循环；系统偏好初始化；storage 持久化                 |
+| `useStorage`   | `storage.local` 读写；IndexedDB 读写                     |
 
 ### 测试基础设施
 
