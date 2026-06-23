@@ -99,20 +99,9 @@ describe('DockBar', () => {
         clientX: 300,
         clientY: 400,
       })
-      // ContextMenu renders "编辑 Docker 栏" when editMode is false
+      // Reka ContextMenu renders content inline (no Portal)
+      expect(wrapper.find('[role="menuitem"]').exists()).toBe(true)
       expect(wrapper.text()).toContain('编辑 Docker 栏')
-    })
-
-    it('opens context menu at cursor position', async () => {
-      const wrapper = mount(DockBar)
-      await wrapper.find('[class*="container"]').trigger('contextmenu', {
-        clientX: 250,
-        clientY: 350,
-      })
-      // ContextMenu should receive x/y props
-      const menu = wrapper.find('[class*="menu"]')
-      expect(menu.attributes('style')).toContain('left: 250px')
-      expect(menu.attributes('style')).toContain('top: 350px')
     })
 
     it('context menu shows "退出编辑" when editMode is true', async () => {
@@ -127,11 +116,6 @@ describe('DockBar', () => {
 
     it('toggle-edit calls enterEditMode when editMode is false', async () => {
       const wrapper = mount(DockBar)
-      await wrapper.find('[class*="container"]').trigger('contextmenu', {
-        clientX: 0,
-        clientY: 0,
-      })
-      // Find ContextMenu and emit toggle-edit
       const ctxMenu = wrapper.findComponent({ name: 'ContextMenu' })
       await ctxMenu.vm.$emit('toggleEdit')
       expect(mockEnterEditMode).toHaveBeenCalled()
@@ -140,10 +124,6 @@ describe('DockBar', () => {
     it('toggle-edit calls exitEditMode when editMode is true', async () => {
       mockEditMode.value = true
       const wrapper = mount(DockBar)
-      await wrapper.find('[class*="container"]').trigger('contextmenu', {
-        clientX: 0,
-        clientY: 0,
-      })
       const ctxMenu = wrapper.findComponent({ name: 'ContextMenu' })
       await ctxMenu.vm.$emit('toggleEdit')
       expect(mockExitEditMode).toHaveBeenCalled()
@@ -162,7 +142,6 @@ describe('DockBar', () => {
         makeShortcut({ id: 'edit-me', name: 'MyApp', url: 'https://myapp.com' }),
       ]
       const wrapper = mount(DockBar)
-      // Find DockItem and emit edit
       const item = wrapper.findComponent({ name: 'DockItem' })
       await item.vm.$emit('edit', 'edit-me')
       await nextTick()
@@ -173,7 +152,6 @@ describe('DockBar', () => {
       const wrapper = mount(DockBar)
       await wrapper.find('button').trigger('click')
 
-      // Fill and save
       const editCard = wrapper.findComponent({ name: 'EditCard' })
       await editCard.vm.$emit('save', {
         name: 'NewApp',
@@ -258,7 +236,8 @@ describe('DockBar', () => {
       const editCard = wrapper.findComponent({ name: 'EditCard' })
       await editCard.vm.$emit('cancel')
       await nextTick()
-      expect(wrapper.text()).not.toContain('添加快捷方式')
+      // After cancel, showEditCard=false, EditCard receives open=false
+      expect(editCard.props('open')).toBe(false)
     })
   })
 
@@ -299,20 +278,7 @@ describe('DockBar', () => {
   })
 
   describe('keyboard', () => {
-    it('Escape closes context menu when shown', async () => {
-      const wrapper = mount(DockBar)
-      await wrapper.find('[class*="container"]').trigger('contextmenu', {
-        clientX: 0,
-        clientY: 0,
-      })
-      expect(wrapper.text()).toContain('编辑 Docker 栏')
-
-      await wrapper.find('[class*="container"]').trigger('keydown', { key: 'Escape' })
-      await nextTick()
-      expect(wrapper.text()).not.toContain('编辑 Docker 栏')
-    })
-
-    it('Escape calls exitEditMode when editMode is true and no context menu', async () => {
+    it('Escape calls exitEditMode when editMode is true', async () => {
       mockEditMode.value = true
       const wrapper = mount(DockBar)
 

@@ -21,24 +21,12 @@ const {
 
 const atLimit = () => shortcuts.value.length >= MAX_SHORTCUTS
 
-// Context menu
-const ctxMenu = ref({ show: false, x: 0, y: 0 })
-
 // EditCard
 const showEditCard = ref(false)
 const editingShortcut = ref<Shortcut | null>(null)
 
 // Drag state
 let dragIndex = -1
-
-function onContextMenu(e: MouseEvent) {
-    e.preventDefault()
-    ctxMenu.value = { show: true, x: e.clientX, y: e.clientY }
-}
-
-function closeContextMenu() {
-    ctxMenu.value.show = false
-}
 
 function onToggleEdit() {
     if (editMode.value) {
@@ -47,7 +35,6 @@ function onToggleEdit() {
     else {
         enterEditMode()
     }
-    closeContextMenu()
 }
 
 function onAddClick() {
@@ -98,59 +85,55 @@ function onDrop() {
 }
 
 function onKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape') {
-        if (ctxMenu.value.show) {
-            closeContextMenu()
-        }
-        else if (editMode.value) {
-            exitEditMode()
-        }
+    if (e.key === 'Escape' && editMode.value) {
+        exitEditMode()
     }
+}
+
+function onEditCardOpenChange(open: boolean) {
+    if (!open)
+        editingShortcut.value = null
 }
 </script>
 
 <template>
-  <div
-    :class="$style.container"
-    @contextmenu.prevent="onContextMenu"
-    @keydown="onKeydown"
+  <ContextMenu
+    :edit-mode="editMode"
+    @toggle-edit="onToggleEdit"
   >
-    <div :class="$style.list">
-      <DockItem
-        v-for="(shortcut, index) in shortcuts"
-        :key="shortcut.id"
-        :shortcut="shortcut"
-        :edit-mode="editMode"
-        :index="index"
-        :get-icon="getIcon"
-        @edit="onEdit"
-        @delete="onDelete"
-        @dragstart="onDragStart"
-        @dragover.prevent="onDragOver(index)"
-        @drop="onDrop"
-      />
-      <AddButton
-        :disabled="atLimit()"
-        @click="onAddClick"
-      />
+    <div
+      :class="$style.container"
+      @keydown="onKeydown"
+    >
+      <div :class="$style.list">
+        <DockItem
+          v-for="(shortcut, index) in shortcuts"
+          :key="shortcut.id"
+          :shortcut="shortcut"
+          :edit-mode="editMode"
+          :index="index"
+          :get-icon="getIcon"
+          @edit="onEdit"
+          @delete="onDelete"
+          @dragstart="onDragStart"
+          @dragover.prevent="onDragOver(index)"
+          @drop="onDrop"
+        />
+        <AddButton
+          :disabled="atLimit()"
+          @click="onAddClick"
+        />
+      </div>
     </div>
+  </ContextMenu>
 
-    <ContextMenu
-      :show="ctxMenu.show"
-      :x="ctxMenu.x"
-      :y="ctxMenu.y"
-      :edit-mode="editMode"
-      @toggle-edit="onToggleEdit"
-      @close="closeContextMenu"
-    />
-
-    <EditCard
-      v-if="showEditCard"
-      :shortcut="editingShortcut"
-      @save="onSave"
-      @cancel="onCancel"
-    />
-  </div>
+  <EditCard
+    v-model:open="showEditCard"
+    :shortcut="editingShortcut"
+    @save="onSave"
+    @cancel="onCancel"
+    @update:open="onEditCardOpenChange"
+  />
 </template>
 
 <style module>

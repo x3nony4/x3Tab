@@ -1,92 +1,49 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import ContextMenu from '../ContextMenu.vue'
 
+function mountMenu(editMode = false) {
+  return mount(ContextMenu, {
+    props: { editMode },
+    slots: { default: '<div class="dock-area">Dock content</div>' },
+  })
+}
+
+/** Right-click the trigger to open the context menu. */
+async function openMenu(wrapper: ReturnType<typeof mount>) {
+  await wrapper.find('.dock-area').trigger('contextmenu', {
+    clientX: 100,
+    clientY: 100,
+  })
+  await nextTick()
+}
+
 describe('ContextMenu', () => {
-  beforeEach(() => {
+  it('renders trigger slot content', () => {
+    const wrapper = mountMenu()
+    expect(wrapper.find('.dock-area').exists()).toBe(true)
+    expect(wrapper.text()).toContain('Dock content')
   })
 
-  it('renders when show is true', () => {
-    const wrapper = mount(ContextMenu, {
-      props: { show: true, x: 100, y: 200, editMode: false },
-    })
-    expect(wrapper.find('[class*="menu"]').exists()).toBe(true)
+  it('shows "编辑 Docker 栏" when editMode is false', async () => {
+    const wrapper = mountMenu(false)
+    await openMenu(wrapper)
+    const item = wrapper.find('[role="menuitem"]')
+    expect(item.exists()).toBe(true)
+    expect(item.text()).toBe('编辑 Docker 栏')
   })
 
-  it('does not render when show is false', () => {
-    const wrapper = mount(ContextMenu, {
-      props: { show: false, x: 100, y: 200, editMode: false },
-    })
-    expect(wrapper.find('[class*="menu"]').exists()).toBe(false)
+  it('shows "退出编辑" when editMode is true', async () => {
+    const wrapper = mountMenu(true)
+    await openMenu(wrapper)
+    expect(wrapper.find('[role="menuitem"]').text()).toBe('退出编辑')
   })
 
-  it('shows "编辑 Docker 栏" when editMode is false', () => {
-    const wrapper = mount(ContextMenu, {
-      props: { show: true, x: 0, y: 0, editMode: false },
-    })
-    expect(wrapper.text()).toContain('编辑 Docker 栏')
-  })
-
-  it('shows "退出编辑" when editMode is true', () => {
-    const wrapper = mount(ContextMenu, {
-      props: { show: true, x: 0, y: 0, editMode: true },
-    })
-    expect(wrapper.text()).toContain('退出编辑')
-  })
-
-  it('emits toggle-edit on menu item click', async () => {
-    const wrapper = mount(ContextMenu, {
-      props: { show: true, x: 0, y: 0, editMode: false },
-    })
-    await wrapper.find('button').trigger('click')
+  it('emits toggleEdit on menu item click', async () => {
+    const wrapper = mountMenu(false)
+    await openMenu(wrapper)
+    await wrapper.find('[role="menuitem"]').trigger('click')
     expect(wrapper.emitted('toggleEdit')).toHaveLength(1)
-  })
-
-  it('positions at given x, y', () => {
-    const wrapper = mount(ContextMenu, {
-      props: { show: true, x: 120, y: 340, editMode: false },
-    })
-    const menu = wrapper.find('[class*="menu"]')
-    expect(menu.attributes('style')).toContain('left: 120px')
-    expect(menu.attributes('style')).toContain('top: 340px')
-  })
-
-  it('emits close on Escape key when shown', async () => {
-    mount(ContextMenu, {
-      props: { show: true, x: 0, y: 0, editMode: false },
-    })
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
-    // Wait for event handler
-    await nextTick()
-    // Can't test emits on document events easily with @vue/test-utils
-    // The component emits 'close' — verify by checking that the handler fires
-  })
-
-  it('does not emit close on Escape when not shown', () => {
-    mount(ContextMenu, {
-      props: { show: false, x: 0, y: 0, editMode: false },
-    })
-    // This should not throw — handler returns early when !show
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
-  })
-
-  it('emits close on document click outside menu', async () => {
-    const wrapper = mount(ContextMenu, {
-      props: { show: true, x: 0, y: 0, editMode: false },
-    })
-    // Click on document body outside the menu
-    document.body.click()
-    await nextTick()
-    expect(wrapper.emitted('close')).toHaveLength(1)
-  })
-
-  it('does not emit close when clicking inside menu', async () => {
-    const wrapper = mount(ContextMenu, {
-      props: { show: true, x: 0, y: 0, editMode: false },
-    })
-    const menu = wrapper.find('[class*="menu"]')
-    await menu.trigger('click')
-    expect(wrapper.emitted('close')).toBeUndefined()
   })
 })

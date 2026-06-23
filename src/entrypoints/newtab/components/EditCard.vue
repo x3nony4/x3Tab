@@ -1,15 +1,23 @@
 <script lang="ts" setup>
 import type { Shortcut } from '../../../composables/useDock'
+import { DialogContent, DialogOverlay, DialogRoot, DialogTitle } from 'reka-ui'
 import { computed, reactive, ref } from 'vue'
 
 const props = defineProps<{
     shortcut: Shortcut | null
+    open: boolean
 }>()
 
 const emit = defineEmits<{
-    save: [Omit<Shortcut, 'id'> & { uploadDataUrl?: string }]
-    cancel: []
+    'save': [Omit<Shortcut, 'id'> & { uploadDataUrl?: string }]
+    'cancel': []
+    'update:open': [boolean]
 }>()
+
+const isOpen = computed({
+    get: () => props.open,
+    set: val => emit('update:open', val)
+})
 
 const isEdit = computed(() => props.shortcut !== null)
 const title = computed(() => isEdit.value ? '编辑快捷方式' : '添加快捷方式')
@@ -77,54 +85,63 @@ function handleSave() {
         uploadDataUrl: iconType.value === 'upload' ? uploadDataUrl.value ?? undefined : undefined
     })
 }
+
+function handleCancel() {
+    emit('cancel')
+}
 </script>
 
 <template>
-  <div :class="$style.overlay" data-overlay @click.self="emit('cancel')">
-    <div :class="$style.card">
-      <h2 :class="$style.title">
+  <DialogRoot v-model:open="isOpen">
+    <DialogOverlay class="fixed inset-0 z-200 bg-black/40" />
+    <DialogContent class="fixed left-1/2 top-1/2 z-200 w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-[var(--color-bg)] p-6 text-[var(--color-text-primary)]">
+      <DialogTitle class="mb-5 text-lg font-semibold">
         {{ title }}
-      </h2>
+      </DialogTitle>
 
       <!-- Name -->
-      <label :class="$style.field">
-        <span :class="$style.label">名称</span>
+      <label class="mb-4 block">
+        <span class="mb-1.5 block text-[13px] font-medium text-[var(--color-text-secondary)]">名称</span>
         <input
           v-model="name"
-          :class="[$style.input, errors.name && $style.inputError]"
+          class="w-full rounded-lg border bg-white/[0.08] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none transition-colors" :class="[
+            errors.name ? 'border-[var(--color-danger)]' : 'border-[var(--color-border)] focus:border-[var(--color-accent)]',
+          ]"
           type="text"
           placeholder="例如：GitHub"
         >
-        <span v-if="errors.name" :class="$style.error">{{ errors.name }}</span>
+        <span v-if="errors.name" class="mt-1 block text-xs text-[var(--color-danger)]">{{ errors.name }}</span>
       </label>
 
       <!-- URL -->
-      <label :class="$style.field">
-        <span :class="$style.label">URL</span>
+      <label class="mb-4 block">
+        <span class="mb-1.5 block text-[13px] font-medium text-[var(--color-text-secondary)]">URL</span>
         <input
           v-model="url"
-          :class="[$style.input, errors.url && $style.inputError]"
+          class="w-full rounded-lg border bg-white/[0.08] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none transition-colors" :class="[
+            errors.url ? 'border-[var(--color-danger)]' : 'border-[var(--color-border)] focus:border-[var(--color-accent)]',
+          ]"
           type="text"
           placeholder="https://example.com"
         >
-        <span v-if="errors.url" :class="$style.error">{{ errors.url }}</span>
+        <span v-if="errors.url" class="mt-1 block text-xs text-[var(--color-danger)]">{{ errors.url }}</span>
       </label>
 
       <!-- Icon type -->
-      <fieldset :class="$style.field">
-        <legend :class="$style.label">
+      <fieldset class="mb-4 block border-none p-0">
+        <legend class="mb-1.5 block text-[13px] font-medium text-[var(--color-text-secondary)]">
           图标类型
         </legend>
-        <div :class="$style.radioGroup">
-          <label :class="$style.radio">
+        <div class="flex gap-4">
+          <label class="flex cursor-pointer items-center gap-1 text-sm">
             <input v-model="iconType" type="radio" value="online">
             <span>在线</span>
           </label>
-          <label :class="$style.radio">
+          <label class="flex cursor-pointer items-center gap-1 text-sm">
             <input v-model="iconType" type="radio" value="solid">
             <span>纯色</span>
           </label>
-          <label :class="$style.radio">
+          <label class="flex cursor-pointer items-center gap-1 text-sm">
             <input v-model="iconType" type="radio" value="upload">
             <span>上传</span>
           </label>
@@ -132,176 +149,42 @@ function handleSave() {
       </fieldset>
 
       <!-- Conditional: solid color picker -->
-      <div v-if="iconType === 'solid'" :class="$style.field">
-        <span :class="$style.label">颜色</span>
-        <input v-model="solidColor" type="color" :class="$style.colorPicker">
+      <div v-if="iconType === 'solid'" class="mb-4 block">
+        <span class="mb-1.5 block text-[13px] font-medium text-[var(--color-text-secondary)]">颜色</span>
+        <input v-model="solidColor" type="color" class="h-8 w-11 cursor-pointer rounded-md border border-[var(--color-border)] bg-transparent p-0.5">
       </div>
 
       <!-- Conditional: upload file input + preview -->
-      <div v-if="iconType === 'upload'" :class="$style.field">
-        <span :class="$style.label">图标文件</span>
+      <div v-if="iconType === 'upload'" class="mb-4 block">
+        <span class="mb-1.5 block text-[13px] font-medium text-[var(--color-text-secondary)]">图标文件</span>
         <input type="file" accept="image/*" @change="handleFileChange">
-        <div v-if="uploadPreview" :class="$style.previewWrap">
-          <img :src="uploadPreview" :class="$style.preview" alt="预览">
+        <div v-if="uploadPreview" class="mt-2">
+          <img :src="uploadPreview" class="h-11 w-11 rounded-[10px] bg-[var(--color-border)] object-contain" alt="预览">
         </div>
       </div>
 
       <!-- Conditional: online helper -->
-      <p v-if="iconType === 'online'" :class="$style.helper">
+      <p v-if="iconType === 'online'" class="-mt-2 mb-4 text-xs text-[var(--color-text-secondary)]">
         将自动从网站获取 favicon 图标
       </p>
 
       <!-- Actions -->
-      <div :class="$style.actions">
-        <button :class="$style.btnCancel" type="button" @click="emit('cancel')">
+      <div class="mt-5 flex justify-end gap-2">
+        <button
+          type="button"
+          class="cursor-pointer rounded-lg border-none bg-white/10 px-5 py-2 text-sm text-[var(--color-text-primary)] transition-opacity hover:opacity-85"
+          @click="handleCancel"
+        >
           取消
         </button>
-        <button :class="$style.btnSave" type="button" @click="handleSave">
+        <button
+          type="button"
+          class="cursor-pointer rounded-lg border-none bg-[var(--color-accent)] px-5 py-2 text-sm text-white transition-opacity hover:opacity-85"
+          @click="handleSave"
+        >
           保存
         </button>
       </div>
-    </div>
-  </div>
+    </DialogContent>
+  </DialogRoot>
 </template>
-
-<style module>
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.card {
-  width: 400px;
-  border-radius: 16px;
-  padding: 24px;
-  background: var(--c-bg, #1e1e2e);
-  color: var(--c-text-primary, #e0e0e0);
-}
-
-.title {
-  margin: 0 0 20px;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.field {
-  display: block;
-  margin-bottom: 16px;
-  border: none;
-  padding: 0;
-}
-
-.label {
-  display: block;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--c-text-secondary, #999);
-  margin-bottom: 6px;
-}
-
-.input {
-  width: 100%;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--c-border, #444);
-  background: var(--c-input-bg, #2a2a3c);
-  color: var(--c-text-primary, #e0e0e0);
-  font-size: 14px;
-  box-sizing: border-box;
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-.input:focus {
-  border-color: var(--c-accent, #6c8cff);
-}
-
-.inputError {
-  border-color: #e74c3c;
-}
-
-.error {
-  display: block;
-  font-size: 12px;
-  color: #e74c3c;
-  margin-top: 4px;
-}
-
-.radioGroup {
-  display: flex;
-  gap: 16px;
-}
-
-.radio {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.colorPicker {
-  width: 44px;
-  height: 32px;
-  border: 1px solid var(--c-border, #444);
-  border-radius: 6px;
-  cursor: pointer;
-  padding: 2px;
-  background: transparent;
-}
-
-.helper {
-  font-size: 12px;
-  color: var(--c-text-secondary, #999);
-  margin: -8px 0 16px;
-}
-
-.previewWrap {
-  margin-top: 8px;
-}
-
-.preview {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  object-fit: contain;
-  background: var(--c-border, #444);
-}
-
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 20px;
-}
-
-.btnCancel,
-.btnSave {
-  padding: 8px 20px;
-  border-radius: 8px;
-  font-size: 14px;
-  cursor: pointer;
-  border: none;
-  transition: opacity 0.15s;
-}
-
-.btnCancel {
-  background: var(--c-btn-secondary-bg, #3a3a4c);
-  color: var(--c-text-primary, #e0e0e0);
-}
-
-.btnSave {
-  background: var(--c-accent, #6c8cff);
-  color: #fff;
-}
-
-.btnCancel:hover,
-.btnSave:hover {
-  opacity: 0.85;
-}
-</style>
