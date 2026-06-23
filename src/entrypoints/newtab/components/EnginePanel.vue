@@ -82,7 +82,7 @@ function selectEngine(engine: SearchEngine) {
     side="bottom"
     align="start"
     :side-offset="4"
-    class="engine-panel w-[var(--search-width)] rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface-elevated)] p-4 backdrop-blur-[16px] z-50 overflow-hidden"
+    class="engine-panel w-[560px] rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface-elevated)] p-4 backdrop-blur-[16px] z-50 overflow-hidden"
   >
     <!-- Engine grid -->
     <div class="engine-grid flex gap-3 flex-wrap">

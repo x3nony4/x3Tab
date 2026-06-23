@@ -50,7 +50,7 @@ describe('DockBar', () => {
   describe('rendering', () => {
     it('renders container', () => {
       const wrapper = mount(DockBar)
-      expect(wrapper.find('[class*="container"]').exists()).toBe(true)
+      expect(wrapper.find('[data-testid="dock-bar"]').exists()).toBe(true)
     })
 
     it('renders DockItem for each shortcut', () => {
@@ -95,7 +95,7 @@ describe('DockBar', () => {
   describe('context menu', () => {
     it('shows context menu on right-click', async () => {
       const wrapper = mount(DockBar)
-      await wrapper.find('[class*="container"]').trigger('contextmenu', {
+      await wrapper.find('[data-testid="dock-bar"]').trigger('contextmenu', {
         clientX: 300,
         clientY: 400,
       })
@@ -107,7 +107,7 @@ describe('DockBar', () => {
     it('context menu shows "退出编辑" when editMode is true', async () => {
       mockEditMode.value = true
       const wrapper = mount(DockBar)
-      await wrapper.find('[class*="container"]').trigger('contextmenu', {
+      await wrapper.find('[data-testid="dock-bar"]').trigger('contextmenu', {
         clientX: 0,
         clientY: 0,
       })
@@ -282,7 +282,7 @@ describe('DockBar', () => {
       mockEditMode.value = true
       const wrapper = mount(DockBar)
 
-      await wrapper.find('[class*="container"]').trigger('keydown', { key: 'Escape' })
+      await wrapper.find('[data-testid="dock-bar"]').trigger('keydown', { key: 'Escape' })
       expect(mockExitEditMode).toHaveBeenCalled()
     })
   })

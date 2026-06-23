@@ -35,24 +35,24 @@ provide('showToast', showToast)
 
 <template>
   <ToastProvider>
-    <div :class="$style.page">
+    <div class="w-screen h-screen flex flex-col items-center justify-start pt-[18vh] overflow-hidden" style="font-family: 'Segoe UI', system-ui, -apple-system, sans-serif">
       <button
-        :class="$style.themeToggle"
+        class="fixed top-5 right-5 bg-transparent border border-[var(--color-border)] text-[var(--color-text-secondary)] text-lg w-9 h-9 rounded-full cursor-pointer transition-all duration-150 z-[100] hover:text-[var(--color-text-primary)] hover:border-[var(--color-border-hover)]"
         :title="theme === 'dark' ? '切换浅色主题' : '切换深色主题'"
         @click="toggle"
       >
         {{ theme === 'dark' ? '◐' : '◑' }}
       </button>
 
-      <div :class="$style.clockArea">
+      <div class="text-center mb-[48px] select-none">
         <Clock />
       </div>
 
-      <div :class="$style.searchArea">
+      <div class="w-[560px]">
         <SearchBar />
       </div>
 
-      <div :class="$style.dockArea">
+      <div class="select-none fixed bottom-0 left-1/2 -translate-x-1/2">
         <DockBar />
       </div>
     </div>
@@ -72,120 +72,3 @@ provide('showToast', showToast)
     </ToastRoot>
   </ToastProvider>
 </template>
-
-<style module>
-.page {
-  --search-width: 560px;
-
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding-top: 18vh;
-  overflow: hidden;
-  font-family:
-    'Segoe UI',
-    system-ui,
-    -apple-system,
-    sans-serif;
-}
-
-/* Theme toggle */
-.themeToggle {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: none;
-  border: 1px solid var(--c-border);
-  color: var(--c-text-secondary);
-  font-size: 18px;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.15s;
-  z-index: 100;
-}
-.themeToggle:hover {
-  color: var(--c-text-primary);
-  border-color: var(--c-border-hover);
-}
-
-/* Clock */
-.clockArea {
-  text-align: center;
-  margin-bottom: 48px;
-  user-select: none;
-}
-
-/* Search */
-.searchArea {
-  width: var(--search-width);
-}
-
-/* Dock */
-.dockArea {
-  user-select: none;
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-}
-</style>
-
-<style>
-/* ── Theme: CSS custom properties ── */
-:root {
-  /* dark theme (default) */
-  --c-bg: #1c1c1e;
-  --c-text-primary: #e4e4e4;
-  --c-text-secondary: #888;
-  --c-text-tertiary: #666;
-  --c-border: rgba(255, 255, 255, 0.08);
-  --c-border-hover: rgba(255, 255, 255, 0.2);
-  --c-search-bg: rgba(255, 255, 255, 0.04);
-  --c-search-border: rgba(255, 255, 255, 0.06);
-  --c-search-border-focus: rgba(255, 255, 255, 0.15);
-  --c-dock-bg: rgba(28, 28, 30, 0.6);
-  --c-dock-blur: blur(24px);
-  --c-dock-border: rgba(255, 255, 255, 0.05);
-}
-
-[data-theme='light'] {
-  /* light theme */
-  --c-bg: #f5f5f7;
-  --c-text-primary: #1c1c1e;
-  --c-text-secondary: #666;
-  --c-text-tertiary: #999;
-  --c-border: rgba(0, 0, 0, 0.08);
-  --c-border-hover: rgba(0, 0, 0, 0.2);
-  --c-search-bg: rgba(0, 0, 0, 0.04);
-  --c-search-border: rgba(0, 0, 0, 0.08);
-  --c-search-border-focus: rgba(0, 0, 0, 0.2);
-  --c-dock-bg: rgba(245, 245, 247, 0.6);
-  --c-dock-blur: blur(24px);
-  --c-dock-border: rgba(0, 0, 0, 0.05);
-}
-
-/* ── Global reset ── */
-*,
-*::before,
-*::after {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  background: var(--c-bg);
-  color: var(--c-text-primary);
-  user-select: none;
-}
-
-input,
-textarea {
-  user-select: text;
-}
-</style>

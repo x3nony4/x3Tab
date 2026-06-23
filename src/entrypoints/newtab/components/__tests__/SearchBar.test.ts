@@ -52,18 +52,18 @@ describe('SearchBar', () => {
         const wrapper = mountBar()
         await nextTick()
         await flush()
-        expect(wrapper.find('[class*="icon"]').text()).toBe('B')
+        expect(wrapper.find('[data-testid="engine-icon"]').text()).toBe('B')
     })
 
     it('renders dropdown arrow', () => {
         const wrapper = mountBar()
-        expect(wrapper.find('[class*="arrow"]').exists()).toBe(true)
+        expect(wrapper.find('[data-testid="engine-arrow"]').exists()).toBe(true)
     })
 
     it('cycles engine on Tab (Baidu → Google → Bing → DuckDuckGo → Baidu)', async () => {
         const wrapper = mountBar()
         const input = wrapper.find('input')
-        const icon = wrapper.find('[class*="icon"]')
+        const icon = wrapper.find('[data-testid="engine-icon"]')
 
         await nextTick()
         await flush()
@@ -117,24 +117,25 @@ describe('SearchBar', () => {
         expect(locHref).toBe('https://www.baidu.com/s?wd=hello%20world%20%26%20more')
     })
 
-    it('adds focused class on input focus', async () => {
+    it('sets focus border on input focus', async () => {
         const wrapper = mountBar()
-        const bar = wrapper.find('[class*="bar"]')
+        const bar = wrapper.find('[data-testid="search-bar"]')
 
-        expect(bar.classes().some(c => c.includes('focused'))).toBe(false)
+        // Not focused: uses default border
+        expect(bar.classes()).toContain('border-[var(--color-surface-border)]')
 
         await wrapper.find('input').trigger('focus')
         await wrapper.vm.$nextTick()
-        expect(bar.classes().some(c => c.includes('focused'))).toBe(true)
+        expect(bar.classes()).toContain('border-[var(--color-surface-border-focus)]')
 
         await wrapper.find('input').trigger('blur')
         await wrapper.vm.$nextTick()
-        expect(bar.classes().some(c => c.includes('focused'))).toBe(false)
+        expect(bar.classes()).toContain('border-[var(--color-surface-border)]')
     })
 
     it('toggles engine panel on arrow click', async () => {
         const wrapper = mountBar()
-        const arrow = wrapper.find('[class*="arrow"]')
+        const arrow = wrapper.find('[data-testid="engine-arrow"]')
 
         // Panel initially hidden (PopoverContent not in DOM)
         expect(wrapper.find('.engine-panel').exists()).toBe(false)
@@ -154,7 +155,7 @@ describe('SearchBar', () => {
         // positioning may not trigger correctly in detached mounts.
         // Trust Reka's built-in click-outside behavior.
         const wrapper = mountBar()
-        const arrow = wrapper.find('[class*="arrow"]')
+        const arrow = wrapper.find('[data-testid="engine-arrow"]')
 
         expect(wrapper.find('.engine-panel').exists()).toBe(false)
 

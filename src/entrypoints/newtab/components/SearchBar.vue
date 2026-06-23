@@ -44,19 +44,32 @@ function onSelectEngine(engine: SearchEngine) {
 
 <template>
   <PopoverRoot v-model:open="showPanel">
-    <PopoverAnchor class="relative w-[var(--search-width)]">
-      <div :class="[$style.bar, isFocused && $style.focused, showPanel && $style.barOpen]">
+    <PopoverAnchor class="relative w-[560px]">
+      <div
+        data-testid="search-bar"
+        class="w-full h-[52px] flex items-center gap-0 px-[14px] bg-[var(--color-surface-elevated)] border rounded-xl transition-[border-color,border-radius] duration-200 ease"
+        :class="{
+          'rounded-t-xl rounded-b-none': showPanel,
+          'border-[var(--color-surface-border-focus)]': isFocused,
+          'border-[var(--color-surface-border)]': !isFocused,
+        }"
+      >
         <PopoverTrigger as-child>
-          <span :class="$style.trigger">
-            <div :class="$style.icon">
+          <span data-testid="engine-trigger" class="group flex items-center shrink-0 cursor-pointer select-none">
+            <span data-testid="engine-icon" class="w-8 h-8 rounded-full bg-[var(--color-border)] text-[var(--color-text-secondary)] text-sm font-semibold flex items-center justify-center shrink-0 select-none">
               {{ currentEngine.name[0] }}
-            </div>
-            <span :class="[$style.arrow, showPanel && $style.arrowOpen]">&#9660;</span>
+            </span>
+            <span
+              data-testid="engine-arrow"
+              class="text-[9px] text-[var(--color-text-tertiary)] ml-[5px] mr-[10px] shrink-0 select-none leading-none py-[4px] px-[2px] transition duration-150 group-hover:text-[var(--color-text-secondary)]"
+              :class="{ 'rotate-180': showPanel }"
+            >&#9660;</span>
           </span>
         </PopoverTrigger>
         <input
           v-model="query"
-          :class="$style.input"
+          class="flex-1 h-full bg-transparent border-none outline-none text-[var(--color-text-primary)] text-lg placeholder:text-[var(--color-text-tertiary)]"
+          style="font-family: inherit"
           type="text"
           placeholder="搜索或输入网址"
           @keydown="onKeydown"
@@ -68,88 +81,3 @@ function onSelectEngine(engine: SearchEngine) {
     <EnginePanel @select="onSelectEngine" />
   </PopoverRoot>
 </template>
-
-<style module>
-.bar {
-  width: 100%;
-  height: 52px;
-  display: flex;
-  align-items: center;
-  gap: 0;
-  padding: 0 14px;
-  background: var(--c-search-bg);
-  border: 1px solid var(--c-search-border);
-  border-radius: 12px;
-  transition:
-    border-color 0.2s ease,
-    border-radius 0.2s ease;
-}
-
-.barOpen {
-  border-radius: 12px 12px 0 0;
-}
-
-.focused {
-  border-color: var(--c-search-border-focus);
-}
-
-.trigger {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  cursor: pointer;
-  user-select: none;
-}
-
-.icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--c-border);
-  color: var(--c-text-secondary);
-  font-size: 14px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  user-select: none;
-}
-
-.arrow {
-  font-size: 9px;
-  color: var(--c-text-tertiary);
-  margin-left: 5px;
-  margin-right: 10px;
-  flex-shrink: 0;
-  user-select: none;
-  line-height: 1;
-  padding: 4px 2px;
-  transition:
-    color 0.15s,
-    transform 0.2s;
-}
-
-.trigger:hover .arrow {
-  color: var(--c-text-secondary);
-}
-
-.arrowOpen {
-  transform: rotate(180deg);
-}
-
-.input {
-  flex: 1;
-  height: 100%;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: var(--c-text-primary);
-  font-size: 18px;
-  font-family: inherit;
-}
-
-.input::placeholder {
-  color: var(--c-text-tertiary);
-}
-</style>

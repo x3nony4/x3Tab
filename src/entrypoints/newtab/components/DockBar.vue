@@ -102,10 +102,11 @@ function onEditCardOpenChange(open: boolean) {
     @toggle-edit="onToggleEdit"
   >
     <div
-      :class="$style.container"
+      data-testid="dock-bar"
+      class="px-3 py-2 bg-[var(--color-surface-glass)] backdrop-blur-[24px] rounded-t-2xl border border-[var(--color-surface-glass-border)] border-b-0"
       @keydown="onKeydown"
     >
-      <div :class="$style.list">
+      <div class="flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <DockItem
           v-for="(shortcut, index) in shortcuts"
           :key="shortcut.id"
@@ -135,27 +136,3 @@ function onEditCardOpenChange(open: boolean) {
     @update:open="onEditCardOpenChange"
   />
 </template>
-
-<style module>
-.container {
-  padding: 8px 12px;
-  background: var(--c-dock-bg);
-  backdrop-filter: var(--c-dock-blur);
-  -webkit-backdrop-filter: var(--c-dock-blur);
-  border-radius: 16px 16px 0 0;
-  border: 1px solid var(--c-dock-border);
-  border-bottom: none;
-}
-
-.list {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.list::-webkit-scrollbar {
-  display: none;
-}
-</style>
