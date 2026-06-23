@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { Shortcut } from '../composables/useDock'
+import type { Shortcut } from '@/composables/useDock'
 import { ref } from 'vue'
-import { MAX_SHORTCUTS, useDock } from '../composables/useDock'
+import { MAX_SHORTCUTS, useDock } from '@/composables/useDock'
 import AddButton from './AddButton.vue'
 import ContextMenu from './ContextMenu.vue'
 import DockItem from './DockItem.vue'
@@ -103,10 +103,10 @@ function onEditCardOpenChange(open: boolean) {
   >
     <div
       data-testid="dock-bar"
-      class="px-3 py-2 bg-[var(--color-surface-glass)] backdrop-blur-[24px] rounded-t-2xl border border-[var(--color-surface-glass-border)] border-b-0"
+      class="px-3 py-2 bg-surface-glass backdrop-blur-xl rounded-t-2xl border border-surface-glass-border border-b-0"
       @keydown="onKeydown"
     >
-      <div class="flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div class="flex items-center gap-2 overflow-x-auto scrollbar-none [&::-webkit-scrollbar]:hidden">
         <DockItem
           v-for="(shortcut, index) in shortcuts"
           :key="shortcut.id"

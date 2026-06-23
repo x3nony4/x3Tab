@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { Shortcut } from '../composables/useDock'
+import type { Shortcut } from '@/composables/useDock'
 import { MinusIcon, PencilIcon } from '@heroicons/vue/24/outline'
 import { computed, onMounted, ref } from 'vue'
 
@@ -75,7 +75,7 @@ onMounted(async () => {
 
 <template>
   <div
-    class="flex flex-col items-center gap-1 cursor-pointer shrink-0 min-w-0 max-w-[72px] relative"
+    class="flex flex-col items-center gap-1 cursor-pointer shrink-0 min-w-0 max-w-18 relative"
     :class="{ 'animate-[wiggle_0.3s_ease-in-out_infinite]': editMode }"
     :style="editMode ? { animationDelay: shakeDelay } : {}"
     :title="shortcut.name"
@@ -87,7 +87,7 @@ onMounted(async () => {
     <!-- Delete badge -->
     <button
       v-if="editMode"
-      class="absolute top-0 right-0 w-4 h-4 rounded-full bg-[var(--color-danger)] text-white border-none text-xs font-bold leading-none flex items-center justify-center cursor-pointer z-[2] p-0"
+      class="absolute top-0 right-0 w-4 h-4 rounded-full bg-danger text-white border-none text-xs font-bold leading-none flex items-center justify-center cursor-pointer z-2 p-0"
       title="删除"
       data-testid="delete-badge"
       @click.stop="handleDelete"
@@ -100,7 +100,7 @@ onMounted(async () => {
       <!-- Online favicon -->
       <img
         v-if="shortcut.iconType === 'online' && !onlineError"
-        class="w-11 h-11 rounded-[10px] bg-[var(--color-border)] object-contain"
+        class="w-11 h-11 rounded-[10px] bg-border object-contain"
         :src="getFaviconUrl(shortcut.url)"
         :alt="shortcut.name"
         @error="onlineError = true"
@@ -109,7 +109,7 @@ onMounted(async () => {
       <!-- Upload custom icon -->
       <img
         v-else-if="shortcut.iconType === 'upload' && uploadSrc"
-        class="w-11 h-11 rounded-[10px] bg-[var(--color-border)] object-contain"
+        class="w-11 h-11 rounded-[10px] bg-border object-contain"
         :src="uploadSrc"
         :alt="shortcut.name"
       >
@@ -117,7 +117,7 @@ onMounted(async () => {
       <!-- Solid / fallback -->
       <div
         v-else
-        class="w-11 h-11 rounded-[10px] bg-[var(--color-border)] flex items-center justify-center"
+        class="w-11 h-11 rounded-[10px] bg-border flex items-center justify-center"
         :style="{ backgroundColor: solidColor }"
       >
         <span class="text-[22px] font-semibold text-white leading-none">{{ firstLetter }}</span>
@@ -134,7 +134,7 @@ onMounted(async () => {
       </div>
     </div>
 
-    <span class="text-[11px] text-[var(--color-text-secondary)] overflow-hidden text-ellipsis whitespace-nowrap max-w-full text-center">{{ shortcut.name }}</span>
+    <span class="text-[11px] text-text-secondary overflow-hidden text-ellipsis whitespace-nowrap max-w-full text-center">{{ shortcut.name }}</span>
   </div>
 </template>
 

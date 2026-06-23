@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import type { SearchEngine } from '../entrypoints/newtab/engines'
+import type { SearchEngine } from '@/entrypoints/newtab/engines'
 import { PlusIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 import { DialogContent, DialogOverlay, DialogRoot, DialogTitle, PopoverContent } from 'reka-ui'
 import { computed, inject, ref } from 'vue'
-import { useStorage } from '../composables/useStorage'
-import { DEFAULT_ENGINES, generateEngineId, randomEngineColor } from '../entrypoints/newtab/engines'
+import { useStorage } from '@/composables/useStorage'
+import { DEFAULT_ENGINES, generateEngineId, randomEngineColor } from '@/entrypoints/newtab/engines'
 
 const emit = defineEmits<{
     select: [engine: SearchEngine]
@@ -83,14 +83,14 @@ function selectEngine(engine: SearchEngine) {
     side="bottom"
     align="start"
     :side-offset="4"
-    class="engine-panel w-[560px] rounded-xl border border-[var(--color-surface-border)] bg-[var(--color-surface-elevated)] p-4 backdrop-blur-[16px] z-50 overflow-hidden"
+    class="engine-panel w-140 rounded-xl border border-surface-border bg-surface-elevated p-4 backdrop-blur-lg z-50 overflow-hidden"
   >
     <!-- Engine grid -->
     <div class="engine-grid flex gap-3 flex-wrap">
       <div
         v-for="engine in engineList"
         :key="engine.id"
-        class="engine-item group relative flex flex-col items-center gap-1.5 cursor-pointer select-none p-1 rounded-lg transition-colors hover:bg-white/[0.06]"
+        class="engine-item group relative flex flex-col items-center gap-1.5 cursor-pointer select-none p-1 rounded-lg transition-colors hover:bg-white/6"
         @click="selectEngine(engine)"
       >
         <div
@@ -99,12 +99,12 @@ function selectEngine(engine: SearchEngine) {
         >
           {{ engine.name[0].toUpperCase() }}
         </div>
-        <span class="engine-name text-[11px] text-[var(--color-text-secondary)] max-w-[64px] overflow-hidden text-ellipsis whitespace-nowrap">
+        <span class="engine-name text-[11px] text-text-secondary max-w-16 overflow-hidden text-ellipsis whitespace-nowrap">
           {{ engine.name }}
         </span>
         <button
           v-if="engineList.length > 1"
-          class="del-btn absolute -top-0.5 -right-0.5 w-[18px] h-[18px] rounded-full border-none bg-[var(--color-text-tertiary)] text-[var(--color-bg)] text-[13px] leading-none cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+          class="del-btn absolute -top-0.5 -right-0.5 w-4.5 h-4.5 rounded-full border-none bg-text-tertiary text-bg text-[13px] leading-none cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
           title="删除引擎"
           @click.stop="deleteEngine(engine.id)"
         >
@@ -113,29 +113,29 @@ function selectEngine(engine: SearchEngine) {
       </div>
 
       <div
-        class="add-btn-item group relative flex flex-col items-center gap-1.5 cursor-pointer select-none p-1 rounded-lg transition-colors hover:bg-white/[0.06]"
+        class="add-btn-item group relative flex flex-col items-center gap-1.5 cursor-pointer select-none p-1 rounded-lg transition-colors hover:bg-white/6"
         @click="openAddForm"
       >
-        <div class="add-icon w-10 h-10 rounded-full bg-[var(--color-border)] text-[var(--color-text-secondary)] flex items-center justify-center shrink-0 transition-colors group-hover:bg-[var(--color-border-hover)]">
+        <div class="add-icon w-10 h-10 rounded-full bg-border text-text-secondary flex items-center justify-center shrink-0 transition-colors group-hover:bg-border-hover">
           <PlusIcon class="w-5 h-5" />
         </div>
-        <span class="engine-name text-[11px] text-[var(--color-text-secondary)] max-w-[64px] overflow-hidden text-ellipsis whitespace-nowrap">添加</span>
+        <span class="engine-name text-[11px] text-text-secondary max-w-16 overflow-hidden text-ellipsis whitespace-nowrap">添加</span>
       </div>
     </div>
 
     <!-- Add form dialog -->
     <DialogRoot v-model:open="showAddForm">
-      <DialogOverlay class="fixed inset-0 z-[100] bg-black/40" />
-      <DialogContent class="fixed left-1/2 top-1/2 z-[100] w-[360px] max-w-[90vw] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-[var(--color-bg)] border border-[var(--color-border)] p-6 text-[var(--color-text-primary)]">
+      <DialogOverlay class="fixed inset-0 z-100 bg-black/40" />
+      <DialogContent class="fixed left-1/2 top-1/2 z-100 w-90 max-w-[90vw] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-bg border border-border p-6 text-text-primary">
         <DialogTitle class="mb-5 text-base font-semibold">
           添加搜索引擎
         </DialogTitle>
 
         <label class="mb-3.5 block">
-          <span class="block mb-1.5 text-xs text-[var(--color-text-secondary)]">名称</span>
+          <span class="block mb-1.5 text-xs text-text-secondary">名称</span>
           <input
             v-model="newName"
-            class="w-full h-10 px-3 bg-[var(--color-surface-elevated)] border border-[var(--color-surface-border)] rounded-lg text-sm text-[var(--color-text-primary)] outline-none transition-colors focus:border-[var(--color-surface-border-focus)]"
+            class="w-full h-10 px-3 bg-surface-elevated border border-surface-border rounded-lg text-sm text-text-primary outline-none transition-colors focus:border-surface-border-focus"
             type="text"
             placeholder="例如：GitHub"
             @keydown.enter="confirmAdd"
@@ -143,29 +143,29 @@ function selectEngine(engine: SearchEngine) {
         </label>
 
         <label class="mb-3.5 block">
-          <span class="block mb-1.5 text-xs text-[var(--color-text-secondary)]">URL 模板</span>
+          <span class="block mb-1.5 text-xs text-text-secondary">URL 模板</span>
           <input
             v-model="newUrl"
-            class="w-full h-10 px-3 bg-[var(--color-surface-elevated)] border border-[var(--color-surface-border)] rounded-lg text-sm text-[var(--color-text-primary)] outline-none transition-colors focus:border-[var(--color-surface-border-focus)]"
+            class="w-full h-10 px-3 bg-surface-elevated border border-surface-border rounded-lg text-sm text-text-primary outline-none transition-colors focus:border-surface-border-focus"
             type="text"
             placeholder="例如：https://github.com/search?q=%s"
             @keydown.enter="confirmAdd"
           >
         </label>
 
-        <div v-if="addError" class="text-[var(--color-danger)] text-xs mb-3">
+        <div v-if="addError" class="text-danger text-xs mb-3">
           {{ addError }}
         </div>
 
         <div class="flex justify-end gap-2 mt-1">
           <button
-            class="h-9 px-4 rounded-lg border-none bg-white/10 text-sm text-[var(--color-text-primary)] cursor-pointer transition-opacity hover:opacity-85"
+            class="h-9 px-4 rounded-lg border-none bg-white/10 text-sm text-text-primary cursor-pointer transition-opacity hover:opacity-85"
             @click="cancelAdd"
           >
             取消
           </button>
           <button
-            class="h-9 px-4 rounded-lg border-none bg-[var(--color-accent)] text-sm text-white cursor-pointer transition-opacity hover:opacity-85"
+            class="h-9 px-4 rounded-lg border-none bg-accent text-sm text-white cursor-pointer transition-opacity hover:opacity-85"
             @click="confirmAdd"
           >
             添加

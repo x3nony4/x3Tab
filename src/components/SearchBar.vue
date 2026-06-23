@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import type { SearchEngine } from '../entrypoints/newtab/engines'
+import type { SearchEngine } from '@/entrypoints/newtab/engines'
 import { ChevronDownIcon } from '@heroicons/vue/24/outline'
 import { PopoverAnchor, PopoverRoot, PopoverTrigger } from 'reka-ui'
 import { computed, ref } from 'vue'
-import { useStorage } from '../composables/useStorage'
-import { DEFAULT_ENGINES } from '../entrypoints/newtab/engines'
+import { useStorage } from '@/composables/useStorage'
+import { DEFAULT_ENGINES } from '@/entrypoints/newtab/engines'
 import EnginePanel from './EnginePanel.vue'
 
 const { value: engines } = useStorage<SearchEngine[]>('engines', DEFAULT_ENGINES)
@@ -45,31 +45,31 @@ function onSelectEngine(engine: SearchEngine) {
 
 <template>
   <PopoverRoot v-model:open="showPanel">
-    <PopoverAnchor class="relative w-[560px]">
+    <PopoverAnchor class="relative w-140">
       <div
         data-testid="search-bar"
-        class="w-full h-[52px] flex items-center gap-0 px-[14px] bg-[var(--color-surface-elevated)] border rounded-xl transition-[border-color,border-radius] duration-200 ease"
+        class="w-full h-13 flex items-center gap-0 px-3.5 bg-surface-elevated border rounded-xl transition-[border-color,border-radius] duration-200 ease"
         :class="{
           'rounded-t-xl rounded-b-none': showPanel,
-          'border-[var(--color-surface-border-focus)]': isFocused,
-          'border-[var(--color-surface-border)]': !isFocused,
+          'border-surface-border-focus': isFocused,
+          'border-surface-border': !isFocused,
         }"
       >
         <PopoverTrigger as-child>
           <span data-testid="engine-trigger" class="group flex items-center shrink-0 cursor-pointer select-none">
-            <span data-testid="engine-icon" class="w-8 h-8 rounded-full bg-[var(--color-border)] text-[var(--color-text-secondary)] text-sm font-semibold flex items-center justify-center shrink-0 select-none">
+            <span data-testid="engine-icon" class="w-8 h-8 rounded-full bg-border text-text-secondary text-sm font-semibold flex items-center justify-center shrink-0 select-none">
               {{ currentEngine.name[0] }}
             </span>
             <span
               data-testid="engine-arrow"
-              class="text-[9px] text-[var(--color-text-tertiary)] ml-[5px] mr-[10px] shrink-0 select-none leading-none py-[4px] px-[2px] transition duration-150 group-hover:text-[var(--color-text-secondary)]"
+              class="text-[9px] text-text-tertiary ml-1.25 mr-2.5 shrink-0 select-none leading-none py-1 px-0.5 transition duration-150 group-hover:text-text-secondary"
               :class="{ 'rotate-180': showPanel }"
             ><ChevronDownIcon class="w-3.5 h-3.5" /></span>
           </span>
         </PopoverTrigger>
         <input
           v-model="query"
-          class="flex-1 h-full bg-transparent border-none outline-none text-[var(--color-text-primary)] text-lg placeholder:text-[var(--color-text-tertiary)]"
+          class="flex-1 h-full bg-transparent border-none outline-none text-text-primary text-lg placeholder:text-text-tertiary"
           style="font-family: inherit"
           type="text"
           placeholder="搜索或输入网址"

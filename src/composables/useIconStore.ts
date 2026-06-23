@@ -1,4 +1,4 @@
-import { defineStore } from '../utils/storage'
+import { defineStore } from '@/utils/storage'
 
 const iconStore = defineStore<{ id: string, data: string }>({
     dbName: 'x3tab-data',

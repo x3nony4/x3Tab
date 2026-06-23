@@ -1,7 +1,5 @@
 import type { Ref } from 'vue'
-import type { WxtStorageItem } from '#imports'
 import { ref } from 'vue'
-import { storage } from '#imports'
 
 /**
  * Reactive wrapper around a WXT storage item.

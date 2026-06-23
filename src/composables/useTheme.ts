@@ -1,5 +1,4 @@
 import { readonly, watch } from 'vue'
-import { storage } from '#imports'
 import { useStorage } from './useStorage'
 
 type Theme = 'dark' | 'light'

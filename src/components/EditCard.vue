@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { Shortcut } from '../composables/useDock'
+import type { Shortcut } from '@/composables/useDock'
 import { DialogContent, DialogOverlay, DialogRoot, DialogTitle } from 'reka-ui'
 import { computed, reactive, ref } from 'vue'
 
@@ -94,42 +94,42 @@ function handleCancel() {
 <template>
   <DialogRoot v-model:open="isOpen">
     <DialogOverlay class="fixed inset-0 z-200 bg-black/40" />
-    <DialogContent class="fixed left-1/2 top-1/2 z-200 w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-[var(--color-bg)] p-6 text-[var(--color-text-primary)]">
+    <DialogContent class="fixed left-1/2 top-1/2 z-200 w-100 -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-bg p-6 text-text-primary">
       <DialogTitle class="mb-5 text-lg font-semibold">
         {{ title }}
       </DialogTitle>
 
       <!-- Name -->
       <label class="mb-4 block">
-        <span class="mb-1.5 block text-[13px] font-medium text-[var(--color-text-secondary)]">名称</span>
+        <span class="mb-1.5 block text-[13px] font-medium text-text-secondary">名称</span>
         <input
           v-model="name"
-          class="w-full rounded-lg border bg-white/[0.08] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none transition-colors" :class="[
-            errors.name ? 'border-[var(--color-danger)]' : 'border-[var(--color-border)] focus:border-[var(--color-accent)]',
+          class="w-full rounded-lg border bg-white/8 px-3 py-2 text-sm text-text-primary outline-none transition-colors" :class="[
+            errors.name ? 'border-danger' : 'border-border focus:border-accent',
           ]"
           type="text"
           placeholder="例如：GitHub"
         >
-        <span v-if="errors.name" class="mt-1 block text-xs text-[var(--color-danger)]">{{ errors.name }}</span>
+        <span v-if="errors.name" class="mt-1 block text-xs text-danger">{{ errors.name }}</span>
       </label>
 
       <!-- URL -->
       <label class="mb-4 block">
-        <span class="mb-1.5 block text-[13px] font-medium text-[var(--color-text-secondary)]">URL</span>
+        <span class="mb-1.5 block text-[13px] font-medium text-text-secondary">URL</span>
         <input
           v-model="url"
-          class="w-full rounded-lg border bg-white/[0.08] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none transition-colors" :class="[
-            errors.url ? 'border-[var(--color-danger)]' : 'border-[var(--color-border)] focus:border-[var(--color-accent)]',
+          class="w-full rounded-lg border bg-white/8 px-3 py-2 text-sm text-text-primary outline-none transition-colors" :class="[
+            errors.url ? 'border-danger' : 'border-border focus:border-accent',
           ]"
           type="text"
           placeholder="https://example.com"
         >
-        <span v-if="errors.url" class="mt-1 block text-xs text-[var(--color-danger)]">{{ errors.url }}</span>
+        <span v-if="errors.url" class="mt-1 block text-xs text-danger">{{ errors.url }}</span>
       </label>
 
       <!-- Icon type -->
       <fieldset class="mb-4 block border-none p-0">
-        <legend class="mb-1.5 block text-[13px] font-medium text-[var(--color-text-secondary)]">
+        <legend class="mb-1.5 block text-[13px] font-medium text-text-secondary">
           图标类型
         </legend>
         <div class="flex gap-4">
@@ -150,21 +150,21 @@ function handleCancel() {
 
       <!-- Conditional: solid color picker -->
       <div v-if="iconType === 'solid'" class="mb-4 block">
-        <span class="mb-1.5 block text-[13px] font-medium text-[var(--color-text-secondary)]">颜色</span>
-        <input v-model="solidColor" type="color" class="h-8 w-11 cursor-pointer rounded-md border border-[var(--color-border)] bg-transparent p-0.5">
+        <span class="mb-1.5 block text-[13px] font-medium text-text-secondary">颜色</span>
+        <input v-model="solidColor" type="color" class="h-8 w-11 cursor-pointer rounded-md border border-border bg-transparent p-0.5">
       </div>
 
       <!-- Conditional: upload file input + preview -->
       <div v-if="iconType === 'upload'" class="mb-4 block">
-        <span class="mb-1.5 block text-[13px] font-medium text-[var(--color-text-secondary)]">图标文件</span>
+        <span class="mb-1.5 block text-[13px] font-medium text-text-secondary">图标文件</span>
         <input type="file" accept="image/*" @change="handleFileChange">
         <div v-if="uploadPreview" class="mt-2">
-          <img :src="uploadPreview" class="h-11 w-11 rounded-[10px] bg-[var(--color-border)] object-contain" alt="预览">
+          <img :src="uploadPreview" class="h-11 w-11 rounded-[10px] bg-border object-contain" alt="预览">
         </div>
       </div>
 
       <!-- Conditional: online helper -->
-      <p v-if="iconType === 'online'" class="-mt-2 mb-4 text-xs text-[var(--color-text-secondary)]">
+      <p v-if="iconType === 'online'" class="-mt-2 mb-4 text-xs text-text-secondary">
         将自动从网站获取 favicon 图标
       </p>
 
@@ -172,14 +172,14 @@ function handleCancel() {
       <div class="mt-5 flex justify-end gap-2">
         <button
           type="button"
-          class="cursor-pointer rounded-lg border-none bg-white/10 px-5 py-2 text-sm text-[var(--color-text-primary)] transition-opacity hover:opacity-85"
+          class="cursor-pointer rounded-lg border-none bg-white/10 px-5 py-2 text-sm text-text-primary transition-opacity hover:opacity-85"
           @click="handleCancel"
         >
           取消
         </button>
         <button
           type="button"
-          class="cursor-pointer rounded-lg border-none bg-[var(--color-accent)] px-5 py-2 text-sm text-white transition-opacity hover:opacity-85"
+          class="cursor-pointer rounded-lg border-none bg-accent px-5 py-2 text-sm text-white transition-opacity hover:opacity-85"
           @click="handleSave"
         >
           保存
