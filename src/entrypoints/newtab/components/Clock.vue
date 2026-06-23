@@ -42,29 +42,18 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div :class="$style.clock">
-    <div :class="$style.time">
+  <div>
+    <div
+      data-testid="time"
+      class="text-[96px] font-extralight tracking-[-2px] leading-none text-[--color-text-primary]"
+    >
       {{ formatTime(now) }}
     </div>
-    <div :class="$style.date">
+    <div
+      data-testid="date"
+      class="text-lg font-normal text-[--color-text-secondary] mt-3"
+    >
       {{ formatDate(now) }}
     </div>
   </div>
 </template>
-
-<style module>
-.time {
-  font-size: 96px;
-  font-weight: 200;
-  letter-spacing: -2px;
-  color: var(--c-text-primary);
-  line-height: 1;
-}
-
-.date {
-  font-size: 18px;
-  font-weight: 400;
-  color: var(--c-text-secondary);
-  margin-top: 12px;
-}
-</style>
