@@ -1,8 +1,10 @@
 <script lang="ts" setup>
-import type { SearchEngine } from '@/entrypoints/newtab/engines'
 import { PlusIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 import { DialogContent, DialogOverlay, DialogRoot, DialogTitle, PopoverContent } from 'reka-ui'
 import { computed, inject, ref } from 'vue'
+
+import type { SearchEngine } from '@/entrypoints/newtab/engines'
+
 import { useStorage } from '@/composables/useStorage'
 import { DEFAULT_ENGINES, generateEngineId, randomEngineColor } from '@/entrypoints/newtab/engines'
 

@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import type { Shortcut } from '@/composables/useDock'
 import { DialogContent, DialogOverlay, DialogRoot, DialogTitle } from 'reka-ui'
 import { computed, reactive, ref } from 'vue'
+
+import type { Shortcut } from '@/composables/useDock'
 
 const props = defineProps<{
     shortcut: Shortcut | null

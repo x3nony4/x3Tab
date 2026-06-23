@@ -1,5 +1,7 @@
 import type { Ref } from 'vue'
+
 import { readonly, ref } from 'vue'
+
 import { useIconStore } from './useIconStore'
 import { useStorage } from './useStorage'
 

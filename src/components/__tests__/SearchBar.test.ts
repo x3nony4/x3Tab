@@ -122,15 +122,15 @@ describe('SearchBar', () => {
         const bar = wrapper.find('[data-testid="search-bar"]')
 
         // Not focused: uses default border
-        expect(bar.classes()).toContain('border-[var(--color-surface-border)]')
+        expect(bar.classes()).toContain('border-surface-border')
 
         await wrapper.find('input').trigger('focus')
         await wrapper.vm.$nextTick()
-        expect(bar.classes()).toContain('border-[var(--color-surface-border-focus)]')
+        expect(bar.classes()).toContain('border-surface-border-focus')
 
         await wrapper.find('input').trigger('blur')
         await wrapper.vm.$nextTick()
-        expect(bar.classes()).toContain('border-[var(--color-surface-border)]')
+        expect(bar.classes()).toContain('border-surface-border')
     })
 
     it('toggles engine panel on arrow click', async () => {

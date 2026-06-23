@@ -15,14 +15,16 @@ export default antfu({
     ignores: [
         '**/.output',
         '**/.wxt',
-        '**/dist',
-        '**/test/**',
+        '**/__test__/**',
         '**/*.test.*',
         '**/*.spec.*'
     ],
     rules: {
         'pnpm/yaml-enforce-settings': 'off',
         'style/comma-dangle': ['error', 'never'],
-        'style/indent': ['error', 4]
+        'style/indent': ['error', 4],
+        'perfectionist/sort-imports': ['error', {
+            newlinesBetween: 1
+        }]
     }
 })
