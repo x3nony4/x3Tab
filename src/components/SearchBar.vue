@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import type { SearchEngine } from '../engines'
+import type { SearchEngine } from '../entrypoints/newtab/engines'
 import { ChevronDownIcon } from '@heroicons/vue/24/outline'
 import { PopoverAnchor, PopoverRoot, PopoverTrigger } from 'reka-ui'
 import { computed, ref } from 'vue'
-import { useStorage } from '../../../composables/useStorage'
-import { DEFAULT_ENGINES } from '../engines'
+import { useStorage } from '../composables/useStorage'
+import { DEFAULT_ENGINES } from '../entrypoints/newtab/engines'
 import EnginePanel from './EnginePanel.vue'
 
 const { value: engines } = useStorage<SearchEngine[]>('engines', DEFAULT_ENGINES)

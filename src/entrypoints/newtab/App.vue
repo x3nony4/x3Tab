@@ -2,10 +2,10 @@
 import { MoonIcon, SunIcon } from '@heroicons/vue/24/outline'
 import { ToastProvider, ToastRoot, ToastTitle, ToastViewport } from 'reka-ui'
 import { onMounted, provide, ref } from 'vue'
+import Clock from '../../components/Clock.vue'
+import DockBar from '../../components/DockBar.vue'
+import SearchBar from '../../components/SearchBar.vue'
 import { useTheme } from '../../composables/useTheme'
-import Clock from './components/Clock.vue'
-import DockBar from './components/DockBar.vue'
-import SearchBar from './components/SearchBar.vue'
 
 const { theme, toggle, init } = useTheme()
 

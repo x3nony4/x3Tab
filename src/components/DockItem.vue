@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { Shortcut } from '../../../composables/useDock'
+import type { Shortcut } from '../composables/useDock'
 import { MinusIcon, PencilIcon } from '@heroicons/vue/24/outline'
 import { computed, onMounted, ref } from 'vue'
 

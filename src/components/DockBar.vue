@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { Shortcut } from '../../../composables/useDock'
+import type { Shortcut } from '../composables/useDock'
 import { ref } from 'vue'
-import { MAX_SHORTCUTS, useDock } from '../../../composables/useDock'
+import { MAX_SHORTCUTS, useDock } from '../composables/useDock'
 import AddButton from './AddButton.vue'
 import ContextMenu from './ContextMenu.vue'
 import DockItem from './DockItem.vue'

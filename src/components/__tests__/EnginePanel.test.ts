@@ -4,7 +4,7 @@ import { ref, nextTick } from 'vue'
 import { PopoverRoot } from 'reka-ui'
 import { fakeBrowser } from 'wxt/testing'
 import EnginePanel from '../EnginePanel.vue'
-import type { SearchEngine } from '../../engines'
+import type { SearchEngine } from '../../entrypoints/newtab/engines'
 
 const defaults: SearchEngine[] = [
     { id: 'baidu', name: 'Baidu', urlTemplate: 'https://www.baidu.com/s?wd=%s', color: '#2932e1' },
