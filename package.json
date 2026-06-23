@@ -1,9 +1,13 @@
 {
-  "name": "wxt-vue-starter",
+  "name": "x3Tab",
   "type": "module",
   "version": "0.0.0",
   "private": true,
-  "description": "manifest.json description",
+  "description": "new tab page browser extension",
+  "author": {
+    "name": "x3nony4",
+    "email": "x3nony4@outlook.com"
+  },
   "scripts": {
     "dev": "wxt",
     "dev:firefox": "wxt -b firefox",
