@@ -3,9 +3,9 @@ import { mount } from '@vue/test-utils'
 import AddButton from '../AddButton.vue'
 
 describe('AddButton', () => {
-    it('renders "+" button', () => {
+    it('renders button', () => {
         const wrapper = mount(AddButton, { props: { disabled: false } })
-        expect(wrapper.text()).toBe('+')
+        expect(wrapper.find('button').exists()).toBe(true)
     })
 
     it('is enabled when not disabled', () => {

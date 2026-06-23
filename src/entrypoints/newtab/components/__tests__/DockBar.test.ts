@@ -65,7 +65,7 @@ describe('DockBar', () => {
 
     it('renders AddButton', () => {
       const wrapper = mount(DockBar)
-      expect(wrapper.text()).toContain('+')
+      expect(wrapper.find('button').exists()).toBe(true)
     })
 
     it('AddButton is disabled when at 15 shortcuts', () => {
@@ -87,7 +87,7 @@ describe('DockBar', () => {
     it('shows empty bar with only AddButton when no shortcuts', () => {
       mockShortcuts.value = []
       const wrapper = mount(DockBar)
-      expect(wrapper.text()).toContain('+')
+      expect(wrapper.find('button').exists()).toBe(true)
       expect(wrapper.findAll('[data-testid="dock-item"]')).toHaveLength(0)
     })
   })

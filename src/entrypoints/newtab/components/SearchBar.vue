@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { SearchEngine } from '../engines'
+import { ChevronDownIcon } from '@heroicons/vue/24/outline'
 import { PopoverAnchor, PopoverRoot, PopoverTrigger } from 'reka-ui'
 import { computed, ref } from 'vue'
 import { useStorage } from '../../../composables/useStorage'
@@ -63,7 +64,7 @@ function onSelectEngine(engine: SearchEngine) {
               data-testid="engine-arrow"
               class="text-[9px] text-[var(--color-text-tertiary)] ml-[5px] mr-[10px] shrink-0 select-none leading-none py-[4px] px-[2px] transition duration-150 group-hover:text-[var(--color-text-secondary)]"
               :class="{ 'rotate-180': showPanel }"
-            >&#9660;</span>
+            ><ChevronDownIcon class="w-3.5 h-3.5" /></span>
           </span>
         </PopoverTrigger>
         <input

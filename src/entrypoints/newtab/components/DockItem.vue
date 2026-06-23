@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { Shortcut } from '../../../composables/useDock'
+import { MinusIcon, PencilIcon } from '@heroicons/vue/24/outline'
 import { computed, onMounted, ref } from 'vue'
 
 const props = defineProps<{
@@ -91,7 +92,7 @@ onMounted(async () => {
       data-testid="delete-badge"
       @click.stop="handleDelete"
     >
-      &minus;
+      <MinusIcon class="w-3 h-3" />
     </button>
 
     <!-- Icon wrapper -->
@@ -129,7 +130,7 @@ onMounted(async () => {
         data-testid="hover-mask"
         @click.stop="handleEdit"
       >
-        <span class="text-lg text-white">&#9998;</span>
+        <PencilIcon class="w-5 h-5 text-white" />
       </div>
     </div>
 

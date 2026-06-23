@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { SearchEngine } from '../engines'
+import { PlusIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 import { DialogContent, DialogOverlay, DialogRoot, DialogTitle, PopoverContent } from 'reka-ui'
 import { computed, inject, ref } from 'vue'
 import { useStorage } from '../../../composables/useStorage'
@@ -107,7 +108,7 @@ function selectEngine(engine: SearchEngine) {
           title="删除引擎"
           @click.stop="deleteEngine(engine.id)"
         >
-          &times;
+          <XMarkIcon class="w-3.5 h-3.5" />
         </button>
       </div>
 
@@ -115,8 +116,8 @@ function selectEngine(engine: SearchEngine) {
         class="add-btn-item group relative flex flex-col items-center gap-1.5 cursor-pointer select-none p-1 rounded-lg transition-colors hover:bg-white/[0.06]"
         @click="openAddForm"
       >
-        <div class="add-icon w-10 h-10 rounded-full bg-[var(--color-border)] text-[var(--color-text-secondary)] text-xl font-normal flex items-center justify-center shrink-0 transition-colors group-hover:bg-[var(--color-border-hover)]">
-          +
+        <div class="add-icon w-10 h-10 rounded-full bg-[var(--color-border)] text-[var(--color-text-secondary)] flex items-center justify-center shrink-0 transition-colors group-hover:bg-[var(--color-border-hover)]">
+          <PlusIcon class="w-5 h-5" />
         </div>
         <span class="engine-name text-[11px] text-[var(--color-text-secondary)] max-w-[64px] overflow-hidden text-ellipsis whitespace-nowrap">添加</span>
       </div>

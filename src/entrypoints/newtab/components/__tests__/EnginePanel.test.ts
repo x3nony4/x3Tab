@@ -89,13 +89,13 @@ describe('EnginePanel', () => {
         expect(names[1].text()).toBe('Google')
     })
 
-    it('add button shows "+" and "添加"', async () => {
+    it('add button shows add icon and "添加" label', async () => {
         const { wrapper } = mountPanel()
         await nextTick()
         await flush()
         const addIcon = wrapper.find('.add-icon')
         const addName = wrapper.find('.add-btn-item .engine-name')
-        expect(addIcon.text()).toBe('+')
+        expect(addIcon.exists()).toBe(true)
         expect(addName.text()).toBe('添加')
     })
 

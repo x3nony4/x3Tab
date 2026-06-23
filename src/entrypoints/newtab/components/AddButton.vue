@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { PlusIcon } from '@heroicons/vue/24/outline'
+
 defineProps<{
     disabled: boolean
 }>()
@@ -15,6 +17,6 @@ const emit = defineEmits<{
     :title="disabled ? '已达到 15 个快捷方式上限' : '添加快捷方式'"
     @click="emit('click')"
   >
-    <span class="text-[22px] leading-none">+</span>
+    <PlusIcon class="w-5 h-5" />
   </button>
 </template>
