@@ -5,7 +5,6 @@ import ContextMenu from './ContextMenu.vue'
 
 describe('ContextMenu', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
   })
 
   it('renders when show is true', () => {

@@ -1,73 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { nextTick } from 'vue'
-
-const { mockWxtStorage } = vi.hoisted(() => {
-    const store = new Map<string, any>()
-
-    function mockDefineItem<T>(key: string, opts?: { fallback?: T; defaultValue?: T }): any {
-        const fallback = opts?.fallback ?? opts?.defaultValue ?? (null as unknown as T)
-        const watchList: Array<(newVal: T, oldVal: T) => void> = []
-
-        return {
-            key,
-            fallback,
-            getValue: vi.fn(async () => (store.has(key) ? store.get(key) : fallback) as T),
-            setValue: vi.fn(async (value: T) => {
-                store.set(key, value)
-                for (const cb of watchList) cb(value, undefined as any)
-            }),
-            watch: vi.fn((cb: (newVal: T, oldVal: T) => void) => {
-                watchList.push(cb)
-                return () => {
-                    const i = watchList.indexOf(cb); if (i >= 0) watchList.splice(i, 1)
-                }
-            }),
-            removeValue: vi.fn(async () => { store.delete(key) }),
-            getMeta: vi.fn(async () => ({})),
-            setMeta: vi.fn(async () => {}),
-            removeMeta: vi.fn(async () => {}),
-            migrate: vi.fn(async () => {}),
-        }
-    }
-
-    return {
-        mockWxtStorage: {
-            getItem: vi.fn(async (key: string) => (store.has(key) ? store.get(key) : null)),
-            setItem: vi.fn(async (key: string, value: any) => { store.set(key, value) }),
-            getItems: vi.fn(),
-            setItems: vi.fn(),
-            getMeta: vi.fn(),
-            setMeta: vi.fn(),
-            setMetas: vi.fn(),
-            removeItem: vi.fn(),
-            removeItems: vi.fn(),
-            removeMeta: vi.fn(),
-            snapshot: vi.fn(),
-            restoreSnapshot: vi.fn(),
-            clear: vi.fn(),
-            watch: vi.fn(),
-            unwatch: vi.fn(),
-            defineItem: vi.fn(mockDefineItem),
-            _store: store,
-        },
-    }
-})
-
-vi.mock('#imports', () => ({
-    storage: mockWxtStorage,
-}))
-
+import { fakeBrowser } from 'wxt/testing'
 import { useDock, type Shortcut, MAX_SHORTCUTS } from './useDock'
 
 let uuidCounter = 0
-beforeEach(() => {
-    vi.clearAllMocks()
-    mockWxtStorage._store.clear()
+beforeEach(async () => {
+    await fakeBrowser.reset()
     uuidCounter = 0
     vi.stubGlobal('crypto', {
         randomUUID: vi.fn(() => `test-uuid-${uuidCounter++}`),
     })
 })
+
+const flush = () => new Promise(r => setTimeout(r))
 
 function makeShortcut(overrides?: Partial<Omit<Shortcut, 'id'>>): Omit<Shortcut, 'id'> {
     return { name: 'GitHub', url: 'https://github.com', iconType: 'online', ...overrides }
@@ -82,11 +26,10 @@ describe('useDock', () => {
 
         it('loads stored shortcuts on init', async () => {
             const stored: Shortcut[] = [{ id: 'a', name: 'GH', url: 'https://github.com', iconType: 'online' }]
-            mockWxtStorage._store.set('local:shortcuts', stored)
+            await browser.storage.local.set({ 'shortcuts': stored })
 
             const { shortcuts } = useDock()
-            await nextTick()
-            await nextTick()
+            await flush()
 
             expect(shortcuts.value).toEqual(stored)
         })
@@ -103,11 +46,13 @@ describe('useDock', () => {
             expect(shortcuts.value[0].name).toBe('GitHub')
         })
 
-        it('persists to storage', () => {
+        it('persists to storage', async () => {
             const { add } = useDock()
             add(makeShortcut())
+            await flush()
 
-            const stored = mockWxtStorage._store.get('local:shortcuts') as Shortcut[]
+            const result = await browser.storage.local.get('shortcuts')
+            const stored = result['shortcuts'] as Shortcut[]
             expect(stored).toHaveLength(1)
             expect(stored[0].name).toBe('GitHub')
         })
@@ -157,12 +102,14 @@ describe('useDock', () => {
             expect(shortcuts.value[0].name).toBe('B')
         })
 
-        it('persists removal', () => {
+        it('persists removal', async () => {
             const { add, remove } = useDock()
             add(makeShortcut())
             remove('test-uuid-0')
+            await flush()
 
-            const stored = mockWxtStorage._store.get('local:shortcuts') as Shortcut[]
+            const result = await browser.storage.local.get('shortcuts')
+            const stored = result['shortcuts'] as Shortcut[]
             expect(stored).toHaveLength(0)
         })
     })
@@ -179,14 +126,16 @@ describe('useDock', () => {
             expect(shortcuts.value.map(s => s.name)).toEqual(['B', 'C', 'A'])
         })
 
-        it('persists reorder', () => {
+        it('persists reorder', async () => {
             const { add, reorder } = useDock()
             add(makeShortcut({ name: 'A' }))
             add(makeShortcut({ name: 'B' }))
 
             reorder(0, 1)
+            await flush()
 
-            const stored = mockWxtStorage._store.get('local:shortcuts') as Shortcut[]
+            const result = await browser.storage.local.get('shortcuts')
+            const stored = result['shortcuts'] as Shortcut[]
             expect(stored.map((s: Shortcut) => s.name)).toEqual(['B', 'A'])
         })
     })
@@ -214,13 +163,11 @@ describe('useDock', () => {
     describe('external changes', () => {
         it('reacts to shortcuts updated externally', async () => {
             const { shortcuts } = useDock()
-            await nextTick()
-            await nextTick()
+            await flush()
 
-            const defResult = mockWxtStorage.defineItem.mock.results[0]?.value
             const updated: Shortcut[] = [{ id: 'ext', name: 'External', url: 'https://ext.com', iconType: 'online' }]
-            await defResult.setValue(updated)
-            await nextTick()
+            await browser.storage.local.set({ 'shortcuts': updated })
+            await flush()
 
             expect(shortcuts.value).toEqual(updated)
         })

@@ -74,7 +74,6 @@ import { useIconStore, resetIconStore } from './useIconStore'
 import type { IconStore } from './useIconStore'
 
 beforeEach(() => {
-    vi.clearAllMocks()
     mockIDB._store.clear()
     mockIDB._resetCount()
     resetIconStore()

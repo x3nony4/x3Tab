@@ -38,7 +38,6 @@ function mountItem(props?: Partial<{ shortcut: Shortcut; editMode: boolean; inde
 
 describe('DockItem', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     mockIconGet.mockResolvedValue(null)
   })
 

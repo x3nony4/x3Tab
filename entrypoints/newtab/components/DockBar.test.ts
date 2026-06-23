@@ -53,7 +53,6 @@ function makeShortcut(overrides?: Partial<Shortcut>): Shortcut {
 beforeEach(() => {
   mockShortcuts.value = []
   mockEditMode.value = false
-  vi.clearAllMocks()
 })
 
 describe('DockBar', () => {
