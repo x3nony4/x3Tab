@@ -88,7 +88,7 @@ describe('DockBar', () => {
       mockShortcuts.value = []
       const wrapper = mount(DockBar)
       expect(wrapper.text()).toContain('+')
-      expect(wrapper.findAll('[class*="item"]')).toHaveLength(0)
+      expect(wrapper.findAll('[data-testid="dock-item"]')).toHaveLength(0)
     })
   })
 

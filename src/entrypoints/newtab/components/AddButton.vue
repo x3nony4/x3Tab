@@ -10,40 +10,11 @@ const emit = defineEmits<{
 
 <template>
   <button
-    :class="$style.btn"
+    class="flex items-center justify-center w-11 h-11 rounded-[10px] border-[1.5px] border-dashed border-[var(--color-border)] bg-transparent text-[var(--color-text-secondary)] cursor-pointer transition-opacity duration-150 shrink-0 hover:border-[var(--color-border-hover)] hover:text-[var(--color-text-primary)] disabled:opacity-30 disabled:cursor-not-allowed"
     :disabled="disabled"
     :title="disabled ? '已达到 15 个快捷方式上限' : '添加快捷方式'"
     @click="emit('click')"
   >
-    <span :class="$style.icon">+</span>
+    <span class="text-[22px] leading-none">+</span>
   </button>
 </template>
-
-<style module>
-.btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  border: 1.5px dashed var(--c-border);
-  background: transparent;
-  color: var(--c-text-secondary);
-  cursor: pointer;
-  transition: opacity 0.15s;
-  flex-shrink: 0;
-}
-.btn:hover:not(:disabled) {
-  border-color: var(--c-border-hover);
-  color: var(--c-text-primary);
-}
-.btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-.icon {
-  font-size: 22px;
-  line-height: 1;
-}
-</style>

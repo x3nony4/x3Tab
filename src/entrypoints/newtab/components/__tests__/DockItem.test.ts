@@ -118,17 +118,17 @@ describe('DockItem', () => {
   describe('edit mode — delete badge', () => {
     it('shows delete badge when editMode is true', () => {
       const wrapper = mountItem({ editMode: true })
-      expect(wrapper.find('[class*="deleteBadge"]').exists()).toBe(true)
+      expect(wrapper.find('[data-testid="delete-badge"]').exists()).toBe(true)
     })
 
     it('hides delete badge when editMode is false', () => {
       const wrapper = mountItem({ editMode: false })
-      expect(wrapper.find('[class*="deleteBadge"]').exists()).toBe(false)
+      expect(wrapper.find('[data-testid="delete-badge"]').exists()).toBe(false)
     })
 
     it('emits delete on badge click', async () => {
       const wrapper = mountItem({ editMode: true, shortcut: makeShortcut({ id: 'del-1' }) })
-      await wrapper.find('[class*="deleteBadge"]').trigger('click')
+      await wrapper.find('[data-testid="delete-badge"]').trigger('click')
       expect(wrapper.emitted('delete')).toHaveLength(1)
       expect(wrapper.emitted('delete')![0]).toEqual(['del-1'])
     })
@@ -137,17 +137,17 @@ describe('DockItem', () => {
   describe('edit mode — hover mask', () => {
     it('shows hover mask when editMode is true', () => {
       const wrapper = mountItem({ editMode: true })
-      expect(wrapper.find('[class*="hoverMask"]').exists()).toBe(true)
+      expect(wrapper.find('[data-testid="hover-mask"]').exists()).toBe(true)
     })
 
     it('hides hover mask when editMode is false', () => {
       const wrapper = mountItem({ editMode: false })
-      expect(wrapper.find('[class*="hoverMask"]').exists()).toBe(false)
+      expect(wrapper.find('[data-testid="hover-mask"]').exists()).toBe(false)
     })
 
     it('emits edit on hover mask click', async () => {
       const wrapper = mountItem({ editMode: true, shortcut: makeShortcut({ id: 'edit-1' }) })
-      await wrapper.find('[class*="hoverMask"]').trigger('click')
+      await wrapper.find('[data-testid="hover-mask"]').trigger('click')
       expect(wrapper.emitted('edit')).toHaveLength(1)
       expect(wrapper.emitted('edit')![0]).toEqual(['edit-1'])
     })
@@ -156,17 +156,17 @@ describe('DockItem', () => {
   describe('edit mode — shaking', () => {
     it('adds shaking class when editMode is true', () => {
       const wrapper = mountItem({ editMode: true })
-      expect(wrapper.find('[class*="shaking"]').exists()).toBe(true)
+      expect(wrapper.find('[class*="wiggle"]').exists()).toBe(true)
     })
 
     it('does not add shaking class when editMode is false', () => {
       const wrapper = mountItem({ editMode: false })
-      expect(wrapper.find('[class*="shaking"]').exists()).toBe(false)
+      expect(wrapper.find('[class*="wiggle"]').exists()).toBe(false)
     })
 
     it('sets animation delay based on index', () => {
       const wrapper = mountItem({ editMode: true, index: 5 })
-      const item = wrapper.find('[class*="item"]')
+      const item = wrapper.find('[data-testid="dock-item"]')
       expect(item.attributes('style')).toContain('animation-delay')
       expect(item.attributes('style')).toContain('0.25s') // 5 * 0.05
     })

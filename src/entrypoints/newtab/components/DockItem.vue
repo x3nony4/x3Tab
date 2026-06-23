@@ -74,29 +74,32 @@ onMounted(async () => {
 
 <template>
   <div
-    :class="[$style.item, editMode && $style.shaking]"
+    class="flex flex-col items-center gap-1 cursor-pointer shrink-0 min-w-0 max-w-[72px] relative"
+    :class="{ 'animate-[wiggle_0.3s_ease-in-out_infinite]': editMode }"
     :style="editMode ? { animationDelay: shakeDelay } : {}"
     :title="shortcut.name"
     :draggable="editMode"
+    data-testid="dock-item"
     @click="handleClick"
     @dragstart="handleDragStart"
   >
     <!-- Delete badge -->
     <button
       v-if="editMode"
-      :class="$style.deleteBadge"
+      class="absolute top-0 right-0 w-4 h-4 rounded-full bg-[var(--color-danger)] text-white border-none text-xs font-bold leading-none flex items-center justify-center cursor-pointer z-[2] p-0"
       title="删除"
+      data-testid="delete-badge"
       @click.stop="handleDelete"
     >
       &minus;
     </button>
 
     <!-- Icon wrapper -->
-    <div :class="$style.iconWrap">
+    <div class="relative group">
       <!-- Online favicon -->
       <img
         v-if="shortcut.iconType === 'online' && !onlineError"
-        :class="$style.icon"
+        class="w-11 h-11 rounded-[10px] bg-[var(--color-border)] object-contain"
         :src="getFaviconUrl(shortcut.url)"
         :alt="shortcut.name"
         @error="onlineError = true"
@@ -105,7 +108,7 @@ onMounted(async () => {
       <!-- Upload custom icon -->
       <img
         v-else-if="shortcut.iconType === 'upload' && uploadSrc"
-        :class="$style.icon"
+        class="w-11 h-11 rounded-[10px] bg-[var(--color-border)] object-contain"
         :src="uploadSrc"
         :alt="shortcut.name"
       >
@@ -113,120 +116,28 @@ onMounted(async () => {
       <!-- Solid / fallback -->
       <div
         v-else
-        :class="$style.icon"
+        class="w-11 h-11 rounded-[10px] bg-[var(--color-border)] flex items-center justify-center"
         :style="{ backgroundColor: solidColor }"
       >
-        <span :class="$style.letter">{{ firstLetter }}</span>
+        <span class="text-[22px] font-semibold text-white leading-none">{{ firstLetter }}</span>
       </div>
 
       <!-- Hover mask (edit mode only) -->
       <div
         v-if="editMode"
-        :class="$style.hoverMask"
+        class="absolute inset-0 rounded-[10px] bg-black/50 flex items-center justify-center opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+        data-testid="hover-mask"
         @click.stop="handleEdit"
       >
-        <span :class="$style.editIcon">&#9998;</span>
+        <span class="text-lg text-white">&#9998;</span>
       </div>
     </div>
 
-    <span :class="$style.name">{{ shortcut.name }}</span>
+    <span class="text-[11px] text-[var(--color-text-secondary)] overflow-hidden text-ellipsis whitespace-nowrap max-w-full text-center">{{ shortcut.name }}</span>
   </div>
 </template>
 
-<style module>
-.item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-  flex-shrink: 0;
-  min-width: 0;
-  max-width: 72px;
-  position: relative;
-}
-
-.iconWrap {
-  position: relative;
-}
-
-.icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: var(--c-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  object-fit: contain;
-}
-
-.letter {
-  font-size: 22px;
-  font-weight: 600;
-  color: #fff;
-  line-height: 1;
-}
-
-.name {
-  font-size: 11px;
-  color: var(--c-text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
-  text-align: center;
-}
-
-/* Shaking */
-.shaking {
-  animation: wiggle 0.3s ease-in-out infinite;
-}
-
-/* Delete badge */
-.deleteBadge {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #e74c3c;
-  color: #fff;
-  border: none;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 2;
-  padding: 0;
-}
-
-/* Hover mask */
-.hoverMask {
-  position: absolute;
-  inset: 0;
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.15s;
-}
-
-.iconWrap:hover .hoverMask {
-  opacity: 1;
-}
-
-.editIcon {
-  font-size: 18px;
-  color: #fff;
-}
-
+<style scoped>
 @keyframes wiggle {
   0%,
   100% {
