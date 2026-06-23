@@ -1,0 +1,70 @@
+@import 'tailwindcss';
+
+/* ── Design tokens ── */
+@theme {
+  /* Surface */
+  --color-bg: #1c1c1e;
+  --color-text-primary: #e4e4e4;
+  --color-text-secondary: #888;
+  --color-text-tertiary: #666;
+
+  /* Border */
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-hover: rgba(255, 255, 255, 0.2);
+
+  /* Elevated surfaces (search, cards) */
+  --color-surface-elevated: rgba(255, 255, 255, 0.04);
+  --color-surface-border: rgba(255, 255, 255, 0.06);
+  --color-surface-border-focus: rgba(255, 255, 255, 0.15);
+
+  /* Glass (dock) */
+  --color-surface-glass: rgba(28, 28, 30, 0.6);
+  --color-surface-glass-border: rgba(255, 255, 255, 0.05);
+
+  /* Semantic */
+  --color-accent: #4285f4;
+  --color-danger: #e74c3c;
+
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+}
+
+/* ── Light theme override ── */
+[data-theme='light'] {
+  --color-bg: #f5f5f7;
+  --color-text-primary: #1c1c1e;
+  --color-text-secondary: #666;
+  --color-text-tertiary: #999;
+  --color-border: rgba(0, 0, 0, 0.08);
+  --color-border-hover: rgba(0, 0, 0, 0.2);
+  --color-surface-elevated: rgba(0, 0, 0, 0.04);
+  --color-surface-border: rgba(0, 0, 0, 0.08);
+  --color-surface-border-focus: rgba(0, 0, 0, 0.2);
+  --color-surface-glass: rgba(245, 245, 247, 0.6);
+  --color-surface-glass-border: rgba(0, 0, 0, 0.05);
+}
+
+/* ── Global reset ── */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    background: var(--color-bg);
+    color: var(--color-text-primary);
+    user-select: none;
+  }
+
+  input,
+  textarea {
+    user-select: text;
+  }
+}

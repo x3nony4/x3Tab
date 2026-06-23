@@ -32,5 +32,12 @@
     "css",
     "less",
     "scss"
-  ]
+  ],
+  "editor.quickSuggestions": {
+    "strings": "on"
+  },
+  "files.associations": {
+    "*.css": "tailwindcss",
+    "*.scss": "tailwindcss"
+  }
 }
