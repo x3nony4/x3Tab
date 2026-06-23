@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { fakeBrowser } from 'wxt/testing'
-import EnginePanel from './EnginePanel.vue'
-import type { SearchEngine } from '../engines'
+import EnginePanel from '../EnginePanel.vue'
+import type { SearchEngine } from '../../engines'
 
 const defaults: SearchEngine[] = [
     { id: 'baidu', name: 'Baidu', urlTemplate: 'https://www.baidu.com/s?wd=%s', color: '#2932e1' },

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { fakeBrowser } from 'wxt/testing'
-import { useDock, type Shortcut, MAX_SHORTCUTS } from './useDock'
+import { useDock, type Shortcut, MAX_SHORTCUTS } from '../useDock'
 
 let uuidCounter = 0
 beforeEach(async () => {

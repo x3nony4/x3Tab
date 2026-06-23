@@ -70,8 +70,8 @@ const { mockIDB } = vi.hoisted(() => {
 
 vi.stubGlobal('indexedDB', mockIDB)
 
-import { useIconStore, resetIconStore } from './useIconStore'
-import type { IconStore } from './useIconStore'
+import { useIconStore, resetIconStore } from '../useIconStore'
+import type { IconStore } from '../useIconStore'
 
 beforeEach(() => {
     mockIDB._store.clear()

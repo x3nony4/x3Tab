@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
-import AddButton from './AddButton.vue'
+import AddButton from '../AddButton.vue'
 
 describe('AddButton', () => {
     it('renders "+" button', () => {

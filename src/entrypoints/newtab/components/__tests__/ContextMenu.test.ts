@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
-import ContextMenu from './ContextMenu.vue'
+import ContextMenu from '../ContextMenu.vue'
 
 describe('ContextMenu', () => {
   beforeEach(() => {

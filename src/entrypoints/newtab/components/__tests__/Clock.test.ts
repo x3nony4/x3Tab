@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import Clock from './Clock.vue'
+import Clock from '../Clock.vue'
 
 beforeEach(() => {
   vi.useFakeTimers()

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fakeBrowser } from 'wxt/testing'
-import { useTheme } from './useTheme'
+import { useTheme } from '../useTheme'
 
 const flush = () => new Promise(r => setTimeout(r))
 

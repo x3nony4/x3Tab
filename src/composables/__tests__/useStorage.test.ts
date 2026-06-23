@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { fakeBrowser } from 'wxt/testing'
-import { useStorage } from './useStorage'
+import { useStorage } from '../useStorage'
 
 beforeEach(async () => {
     await fakeBrowser.reset()

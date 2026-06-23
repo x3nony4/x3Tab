@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
-import type { Shortcut } from '../../../composables/useDock'
+import type { Shortcut } from '@/composables/useDock'
 
 const mockIconGet = vi.fn().mockResolvedValue(null)
 
-vi.mock('../../../composables/useIconStore', () => ({
+vi.mock('@/composables/useIconStore', () => ({
   useIconStore: vi.fn(() => ({
     get: mockIconGet,
     set: vi.fn(),
@@ -13,7 +13,7 @@ vi.mock('../../../composables/useIconStore', () => ({
   })),
 }))
 
-import DockItem from './DockItem.vue'
+import DockItem from '../DockItem.vue'
 
 function makeShortcut(overrides?: Partial<Shortcut>): Shortcut {
   return {

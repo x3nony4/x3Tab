@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { fakeBrowser } from 'wxt/testing'
-import SearchBar from './SearchBar.vue'
+import SearchBar from '../SearchBar.vue'
 
 const defaults = [
     { id: 'baidu', name: 'Baidu', urlTemplate: 'https://www.baidu.com/s?wd=%s', color: '#2932e1' },

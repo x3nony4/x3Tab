@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ref } from 'vue'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
-import type { Shortcut } from '../../../composables/useDock'
+import type { Shortcut } from '@/composables/useDock'
 
 const mockShortcuts = ref<Shortcut[]>([])
 const mockEditMode = ref(false)
@@ -13,7 +13,7 @@ const mockReorder = vi.fn()
 const mockEnterEditMode = vi.fn()
 const mockExitEditMode = vi.fn()
 
-vi.mock('../../../composables/useDock', () => ({
+vi.mock('@/composables/useDock', () => ({
   useDock: vi.fn(() => ({
     shortcuts: mockShortcuts,
     editMode: mockEditMode,
@@ -30,7 +30,7 @@ vi.mock('../../../composables/useDock', () => ({
 const mockIconSet = vi.fn()
 const mockIconRemove = vi.fn()
 
-vi.mock('../../../composables/useIconStore', () => ({
+vi.mock('@/composables/useIconStore', () => ({
   useIconStore: vi.fn(() => ({
     get: vi.fn(),
     set: mockIconSet,
@@ -38,7 +38,7 @@ vi.mock('../../../composables/useIconStore', () => ({
   })),
 }))
 
-import DockBar from './DockBar.vue'
+import DockBar from '../DockBar.vue'
 
 function makeShortcut(overrides?: Partial<Shortcut>): Shortcut {
   return {

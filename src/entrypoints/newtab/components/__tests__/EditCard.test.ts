@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
-import type { Shortcut } from '../../../composables/useDock'
-import EditCard from './EditCard.vue'
+import type { Shortcut } from '@/composables/useDock'
+import EditCard from '../EditCard.vue'
 
 function makeShortcut(overrides?: Partial<Shortcut>): Shortcut {
     return {
