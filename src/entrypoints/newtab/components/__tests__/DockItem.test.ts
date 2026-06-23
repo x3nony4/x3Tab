@@ -3,15 +3,7 @@ import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import type { Shortcut } from '@/composables/useDock'
 
-const mockIconGet = vi.fn().mockResolvedValue(null)
-
-vi.mock('@/composables/useIconStore', () => ({
-  useIconStore: vi.fn(() => ({
-    get: mockIconGet,
-    set: vi.fn(),
-    remove: vi.fn(),
-  })),
-}))
+const mockGetIcon = vi.fn().mockResolvedValue(null)
 
 import DockItem from '../DockItem.vue'
 
@@ -25,12 +17,13 @@ function makeShortcut(overrides?: Partial<Shortcut>): Shortcut {
   }
 }
 
-function mountItem(props?: Partial<{ shortcut: Shortcut; editMode: boolean; index: number }>) {
+function mountItem(props?: Partial<{ shortcut: Shortcut; editMode: boolean; index: number; getIcon: (id: string) => Promise<string | null> }>) {
   return mount(DockItem, {
     props: {
       shortcut: makeShortcut(),
       editMode: false,
       index: 0,
+      getIcon: mockGetIcon,
       ...props,
     },
   })
@@ -38,7 +31,7 @@ function mountItem(props?: Partial<{ shortcut: Shortcut; editMode: boolean; inde
 
 describe('DockItem', () => {
   beforeEach(() => {
-    mockIconGet.mockResolvedValue(null)
+    mockGetIcon.mockResolvedValue(null)
   })
 
   describe('icon rendering', () => {
@@ -71,8 +64,8 @@ describe('DockItem', () => {
   })
 
   describe('upload icon', () => {
-    it('loads upload icon from iconStore', async () => {
-      mockIconGet.mockResolvedValue('data:image/png;base64,abc123')
+    it('loads upload icon from getIcon prop', async () => {
+      mockGetIcon.mockResolvedValue('data:image/png;base64,abc123')
       const wrapper = mountItem({ shortcut: makeShortcut({ iconType: 'upload' }) })
       await nextTick()
       await nextTick()
@@ -83,7 +76,7 @@ describe('DockItem', () => {
     })
 
     it('shows solid fallback when upload icon not found', async () => {
-      mockIconGet.mockResolvedValue(null)
+      mockGetIcon.mockResolvedValue(null)
       const wrapper = mountItem({ shortcut: makeShortcut({ iconType: 'upload', name: 'X' }) })
       await nextTick()
       await nextTick()

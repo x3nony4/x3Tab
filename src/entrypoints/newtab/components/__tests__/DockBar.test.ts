@@ -12,6 +12,7 @@ const mockRemove = vi.fn()
 const mockReorder = vi.fn()
 const mockEnterEditMode = vi.fn()
 const mockExitEditMode = vi.fn()
+const mockGetIcon = vi.fn()
 
 vi.mock('@/composables/useDock', () => ({
   useDock: vi.fn(() => ({
@@ -23,19 +24,9 @@ vi.mock('@/composables/useDock', () => ({
     reorder: mockReorder,
     enterEditMode: mockEnterEditMode,
     exitEditMode: mockExitEditMode,
+    getIcon: mockGetIcon,
   })),
   MAX_SHORTCUTS: 15,
-}))
-
-const mockIconSet = vi.fn()
-const mockIconRemove = vi.fn()
-
-vi.mock('@/composables/useIconStore', () => ({
-  useIconStore: vi.fn(() => ({
-    get: vi.fn(),
-    set: mockIconSet,
-    remove: mockIconRemove,
-  })),
 }))
 
 import DockBar from '../DockBar.vue'
@@ -193,11 +184,10 @@ describe('DockBar', () => {
         name: 'NewApp',
         url: 'https://newapp.com',
         iconType: 'online',
-      })
+      }, undefined)
     })
 
-    it('save in create mode with upload calls iconStore.set', async () => {
-      mockAdd.mockReturnValue({ id: 'created-id', name: 'Up', url: 'https://up.com', iconType: 'upload' })
+    it('save in create mode with upload passes iconBlob to add', async () => {
       const wrapper = mount(DockBar)
       await wrapper.find('button').trigger('click')
 
@@ -208,7 +198,10 @@ describe('DockBar', () => {
         iconType: 'upload',
         uploadDataUrl: 'data:image/png;base64,xyz',
       })
-      expect(mockIconSet).toHaveBeenCalledWith('created-id', 'data:image/png;base64,xyz')
+      expect(mockAdd).toHaveBeenCalledWith(
+        { name: 'Up', url: 'https://up.com', iconType: 'upload' },
+        'data:image/png;base64,xyz',
+      )
     })
 
     it('save in edit mode calls update()', async () => {
@@ -231,10 +224,10 @@ describe('DockBar', () => {
         name: 'Updated',
         url: 'https://updated.com',
         iconType: 'online',
-      })
+      }, undefined)
     })
 
-    it('save in edit mode with upload calls iconStore.set', async () => {
+    it('save in edit mode with upload passes iconBlob to update', async () => {
       mockShortcuts.value = [
         makeShortcut({ id: 'existing2', name: 'Old', url: 'https://old.com' }),
       ]
@@ -251,7 +244,10 @@ describe('DockBar', () => {
         iconType: 'upload',
         uploadDataUrl: 'data:image/png;base64,abc',
       })
-      expect(mockIconSet).toHaveBeenCalledWith('existing2', 'data:image/png;base64,abc')
+      expect(mockUpdate).toHaveBeenCalledWith('existing2',
+        { name: 'Old', url: 'https://old.com', iconType: 'upload' },
+        'data:image/png;base64,abc',
+      )
     })
 
     it('cancel closes EditCard', async () => {
@@ -267,7 +263,7 @@ describe('DockBar', () => {
   })
 
   describe('delete', () => {
-    it('calls remove and iconStore.remove on delete', async () => {
+    it('calls remove on delete', async () => {
       mockShortcuts.value = [
         makeShortcut({ id: 'del-me', name: 'Del' }),
       ]
@@ -277,7 +273,6 @@ describe('DockBar', () => {
       await item.vm.$emit('delete', 'del-me')
 
       expect(mockRemove).toHaveBeenCalledWith('del-me')
-      expect(mockIconRemove).toHaveBeenCalledWith('del-me')
     })
   })
 

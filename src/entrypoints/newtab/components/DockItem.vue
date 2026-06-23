@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import type { Shortcut } from '../../../composables/useDock'
 import { computed, onMounted, ref } from 'vue'
-import { useIconStore } from '../../../composables/useIconStore'
 
 const props = defineProps<{
     shortcut: Shortcut
     editMode: boolean
     index: number
+    getIcon: (id: string) => Promise<string | null>
 }>()
 
 const emit = defineEmits<{
@@ -16,7 +16,6 @@ const emit = defineEmits<{
     dragstart: [index: number]
 }>()
 
-const iconStore = useIconStore()
 const uploadSrc = ref<string | null>(null)
 const onlineError = ref(false)
 
@@ -65,7 +64,7 @@ function handleDragStart(e: DragEvent) {
 
 onMounted(async () => {
     if (props.shortcut.iconType === 'upload') {
-        const dataUrl = await iconStore.get(props.shortcut.id)
+        const dataUrl = await props.getIcon(props.shortcut.id)
         if (dataUrl) {
             uploadSrc.value = dataUrl
         }

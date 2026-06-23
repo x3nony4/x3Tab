@@ -2,7 +2,6 @@
 import type { Shortcut } from '../../../composables/useDock'
 import { ref } from 'vue'
 import { MAX_SHORTCUTS, useDock } from '../../../composables/useDock'
-import { useIconStore } from '../../../composables/useIconStore'
 import AddButton from './AddButton.vue'
 import ContextMenu from './ContextMenu.vue'
 import DockItem from './DockItem.vue'
@@ -16,9 +15,9 @@ const {
     remove,
     reorder,
     enterEditMode,
-    exitEditMode
+    exitEditMode,
+    getIcon
 } = useDock()
-const iconStore = useIconStore()
 
 const atLimit = () => shortcuts.value.length >= MAX_SHORTCUTS
 
@@ -65,18 +64,10 @@ function onSave(payload: Omit<Shortcut, 'id'> & { uploadDataUrl?: string }) {
     const { uploadDataUrl, ...shortcutData } = payload
 
     if (editingShortcut.value) {
-    // Edit existing
-        update(editingShortcut.value.id, shortcutData)
-        if (uploadDataUrl) {
-            iconStore.set(editingShortcut.value.id, uploadDataUrl)
-        }
+        update(editingShortcut.value.id, shortcutData, uploadDataUrl)
     }
     else {
-    // Create new
-        const created = add(shortcutData)
-        if (created && uploadDataUrl) {
-            iconStore.set(created.id, uploadDataUrl)
-        }
+        add(shortcutData, uploadDataUrl)
     }
     showEditCard.value = false
     editingShortcut.value = null
@@ -89,7 +80,6 @@ function onCancel() {
 
 function onDelete(id: string) {
     remove(id)
-    iconStore.remove(id)
 }
 
 function onDragStart(index: number) {
@@ -132,6 +122,7 @@ function onKeydown(e: KeyboardEvent) {
         :shortcut="shortcut"
         :edit-mode="editMode"
         :index="index"
+        :get-icon="getIcon"
         @edit="onEdit"
         @delete="onDelete"
         @dragstart="onDragStart"

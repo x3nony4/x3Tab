@@ -2,13 +2,76 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { fakeBrowser } from 'wxt/testing'
 import { useDock, type Shortcut, MAX_SHORTCUTS } from '../useDock'
 
+const { mockIDB } = vi.hoisted(() => {
+    const store = new Map<string, { id: string; data: string }>()
+
+    function makeObjectStore() {
+        return {
+            get(id: string) {
+                const record = store.get(id)
+                const req: any = { result: record ?? undefined, onsuccess: null, onerror: null }
+                Promise.resolve().then(() => req.onsuccess?.({ target: req }))
+                return req
+            },
+            put(record: { id: string; data: string }) {
+                store.set(record.id, record)
+                const req: any = { result: record.id, onsuccess: null, onerror: null }
+                Promise.resolve().then(() => req.onsuccess?.({ target: req }))
+                return req
+            },
+            delete(id: string) {
+                store.delete(id)
+                const req: any = { result: undefined, onsuccess: null, onerror: null }
+                Promise.resolve().then(() => req.onsuccess?.({ target: req }))
+                return req
+            },
+        }
+    }
+
+    const mockIDB = {
+        open(_name: string, _version?: number) {
+            const req: any = {}
+            const db: any = {
+                objectStoreNames: { contains: vi.fn(() => true) },
+                createObjectStore: vi.fn(),
+                transaction: vi.fn((_storeName: string, _mode?: string) => {
+                    let txComplete: (() => void) | null = null
+                    const tx: any = {
+                        objectStore: vi.fn(() => makeObjectStore()),
+                        get oncomplete() { return null },
+                        set oncomplete(fn: any) { txComplete = fn },
+                        get onerror() { return null },
+                        set onerror(_fn: any) {},
+                        abort: vi.fn(),
+                        get error() { return null },
+                    }
+                    Promise.resolve().then(() => Promise.resolve()).then(() => txComplete?.())
+                    return tx
+                }),
+                close: vi.fn(),
+            }
+            Promise.resolve().then(() => {
+                req.onupgradeneeded?.({ target: req })
+                req.onsuccess?.({ target: req })
+            })
+            Object.defineProperty(req, 'result', { value: db, configurable: true })
+            return req
+        },
+        _store: store,
+    }
+
+    return { mockIDB }
+})
+
 let uuidCounter = 0
 beforeEach(async () => {
     await fakeBrowser.reset()
     uuidCounter = 0
+    mockIDB._store.clear()
     vi.stubGlobal('crypto', {
         randomUUID: vi.fn(() => `test-uuid-${uuidCounter++}`),
     })
+    vi.stubGlobal('indexedDB', mockIDB)
 })
 
 const flush = () => new Promise(r => setTimeout(r))
@@ -170,6 +233,95 @@ describe('useDock', () => {
             await flush()
 
             expect(shortcuts.value).toEqual(updated)
+        })
+    })
+
+    describe('icon persistence', () => {
+        describe('add with iconBlob', () => {
+            it('stores icon to IndexedDB when iconBlob is provided', async () => {
+                const { add, getIcon } = useDock()
+                const created = add(makeShortcut({ iconType: 'upload' }), 'data:image/png;base64,abc')
+                await flush()
+
+                const icon = await getIcon(created!.id)
+                expect(icon).toBe('data:image/png;base64,abc')
+            })
+
+            it('does not touch IndexedDB when no iconBlob', async () => {
+                const { add, getIcon } = useDock()
+                const created = add(makeShortcut({ iconType: 'solid' }))
+                await flush()
+
+                const icon = await getIcon(created!.id)
+                expect(icon).toBeNull()
+            })
+
+            it('does not rollback WXT on IndexedDB failure', () => {
+                const backup = mockIDB.open
+                mockIDB.open = () => { throw new Error('IDB crash') }
+                const { shortcuts, add } = useDock()
+                add(makeShortcut(), 'data:image/png;base64,will-fail')
+                // Still added to shortcuts array
+                expect(shortcuts.value).toHaveLength(1)
+                mockIDB.open = backup
+            })
+        })
+
+        describe('update with iconBlob', () => {
+            it('stores icon to IndexedDB when iconBlob is provided', async () => {
+                const { add, update, getIcon } = useDock()
+                add(makeShortcut({ name: 'Old', iconType: 'upload' }))
+                await flush()
+
+                update('test-uuid-0', { name: 'New' }, 'data:image/png;base64,updated')
+                await flush()
+
+                const icon = await getIcon('test-uuid-0')
+                expect(icon).toBe('data:image/png;base64,updated')
+            })
+
+            it('does not overwrite IndexedDB when no iconBlob', async () => {
+                const { add, update, getIcon } = useDock()
+                add(makeShortcut({ iconType: 'upload' }), 'data:image/png;base64,original')
+                await flush()
+
+                update('test-uuid-0', { name: 'Renamed' })
+                await flush()
+
+                const icon = await getIcon('test-uuid-0')
+                expect(icon).toBe('data:image/png;base64,original')
+            })
+        })
+
+        describe('remove', () => {
+            it('deletes icon from IndexedDB', async () => {
+                const { add, remove, getIcon } = useDock()
+                add(makeShortcut({ iconType: 'upload' }), 'data:image/png;base64,todelete')
+                await flush()
+
+                remove('test-uuid-0')
+                await flush()
+
+                const icon = await getIcon('test-uuid-0')
+                expect(icon).toBeNull()
+            })
+        })
+
+        describe('getIcon', () => {
+            it('returns icon dataUrl for stored icon', async () => {
+                const { add, getIcon } = useDock()
+                add(makeShortcut({ iconType: 'upload' }), 'data:image/png;base64,xyz')
+                await flush()
+
+                const icon = await getIcon('test-uuid-0')
+                expect(icon).toBe('data:image/png;base64,xyz')
+            })
+
+            it('returns null for unknown id', async () => {
+                const { getIcon } = useDock()
+                const result = await getIcon('nonexistent')
+                expect(result).toBeNull()
+            })
         })
     })
 })
