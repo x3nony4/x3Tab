@@ -70,13 +70,12 @@ const { mockIDB } = vi.hoisted(() => {
 
 vi.stubGlobal('indexedDB', mockIDB)
 
-import { useIconStore, resetIconStore } from '../useIconStore'
+import { useIconStore } from '../useIconStore'
 import type { IconStore } from '../useIconStore'
 
 beforeEach(() => {
     mockIDB._store.clear()
     mockIDB._resetCount()
-    resetIconStore()
 })
 
 describe('useIconStore', () => {
@@ -123,7 +122,6 @@ describe('useIconStore', () => {
         // These tests verify the singleton behavior by calling useIconStore
         // only within the test body (not via parent beforeEach).
         it('reuses the same database connection across instances', async () => {
-            resetIconStore()
             const a = useIconStore()
             const b = useIconStore()
             await a.set('key', 'data:image/png;base64,val')
@@ -132,7 +130,6 @@ describe('useIconStore', () => {
         })
 
         it('returns working methods without awaiting open', async () => {
-            resetIconStore()
             const s = useIconStore()
             expect(s).toHaveProperty('get')
             expect(s).toHaveProperty('set')
