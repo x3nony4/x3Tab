@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ReorderGroup } from 'motion-v'
+import { AnimatePresence, ReorderGroup } from 'motion-v'
 import { ContextMenuItem } from 'reka-ui'
 import { computed, ref } from 'vue'
 
@@ -92,31 +92,33 @@ function onEditCardOpenChange(open: boolean) {
         class="flex items-center gap-2"
         @update:values="onReorder"
       >
-        <DockReorderItem
-          v-for="shortcut in shortcuts"
-          :key="shortcut.id"
-          :shortcut="shortcut"
-          :get-icon="getIcon"
-          :tooltip="shortcut.name"
-          show-menu
-        >
-          <template #menu>
-            <ContextMenuItem
-              class="block w-full cursor-pointer select-none whitespace-nowrap rounded-md bg-transparent px-3 py-2 text-left text-[13px] text-text-primary outline-none hover:bg-surface-elevated focus:bg-surface-elevated"
-              data-testid="menu-edit"
-              @select="onEdit(shortcut.id)"
-            >
-              编辑
-            </ContextMenuItem>
-            <ContextMenuItem
-              class="block w-full cursor-pointer select-none whitespace-nowrap rounded-md bg-transparent px-3 py-2 text-left text-[13px] text-text-primary outline-none hover:bg-surface-elevated focus:bg-surface-elevated"
-              data-testid="menu-delete"
-              @select="onDelete(shortcut.id)"
-            >
-              删除
-            </ContextMenuItem>
-          </template>
-        </DockReorderItem>
+        <AnimatePresence mode="popLayout">
+          <DockReorderItem
+            v-for="shortcut in shortcuts"
+            :key="shortcut.id"
+            :shortcut="shortcut"
+            :get-icon="getIcon"
+            :tooltip="shortcut.name"
+            show-menu
+          >
+            <template #menu>
+              <ContextMenuItem
+                class="block w-full cursor-pointer select-none whitespace-nowrap rounded-md bg-transparent px-3 py-2 text-left text-[13px] text-text-primary outline-none hover:bg-surface-elevated focus:bg-surface-elevated"
+                data-testid="menu-edit"
+                @select="onEdit(shortcut.id)"
+              >
+                编辑
+              </ContextMenuItem>
+              <ContextMenuItem
+                class="block w-full cursor-pointer select-none whitespace-nowrap rounded-md bg-transparent px-3 py-2 text-left text-[13px] text-text-primary outline-none hover:bg-surface-elevated focus:bg-surface-elevated"
+                data-testid="menu-delete"
+                @select="onDelete(shortcut.id)"
+              >
+                删除
+              </ContextMenuItem>
+            </template>
+          </DockReorderItem>
+        </AnimatePresence>
       </ReorderGroup>
       <DockTile tooltip="添加快捷方式">
         <AddButton

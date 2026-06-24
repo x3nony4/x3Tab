@@ -55,9 +55,15 @@ function mountDockBar() {
           },
         }),
         ReorderItem: defineComponent({
-          props: ['value', 'dragControls', 'dragListener', 'whileDrag', 'as'],
+          props: ['value', 'dragControls', 'dragListener', 'whileDrag', 'whileHover', 'exit', 'as'],
           setup(_props, { slots }) {
             return () => h('div', { 'data-testid': 'reorder-item' }, slots.default?.({ isDragging: false }))
+          },
+        }),
+        AnimatePresence: defineComponent({
+          props: ['mode', 'initial'],
+          setup(_props, { slots }) {
+            return () => slots.default?.()
           },
         }),
       },
