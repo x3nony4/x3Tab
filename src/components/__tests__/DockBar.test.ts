@@ -7,6 +7,7 @@ import type { Shortcut } from '@/composables/useDock'
 const mockShortcuts = ref<Shortcut[]>([])
 const mockAdd = vi.fn()
 const mockUpdate = vi.fn()
+const mockRemove = vi.fn()
 const mockGetIcon = vi.fn()
 
 vi.mock('@/composables/useDock', () => ({
@@ -14,6 +15,7 @@ vi.mock('@/composables/useDock', () => ({
     shortcuts: mockShortcuts,
     add: mockAdd,
     update: mockUpdate,
+    remove: mockRemove,
     getIcon: mockGetIcon,
   })),
   MAX_SHORTCUTS: 15,
@@ -35,6 +37,7 @@ beforeEach(() => {
   mockShortcuts.value = []
   mockAdd.mockClear()
   mockUpdate.mockClear()
+  mockRemove.mockClear()
 })
 
 describe('DockBar', () => {
@@ -80,6 +83,58 @@ describe('DockBar', () => {
       const wrapper = mount(DockBar)
       expect(wrapper.find('button').exists()).toBe(true)
       expect(wrapper.findAll('[data-testid="dock-item"]')).toHaveLength(0)
+    })
+  })
+
+  describe('context menu', () => {
+    it('shows edit and delete items on right-click', async () => {
+      mockShortcuts.value = [makeShortcut({ id: 'a', name: 'A' })]
+      const wrapper = mount(DockBar)
+      await nextTick()
+
+      const dockItem = wrapper.find('[data-testid="dock-item"]')
+      await dockItem.trigger('contextmenu', { button: 2 })
+      await nextTick()
+
+      const menuItems = wrapper.findAll('[role="menuitem"]')
+      expect(menuItems).toHaveLength(2)
+      expect(menuItems[0].text()).toBe('编辑')
+      expect(menuItems[1].text()).toBe('删除')
+    })
+
+    it('click edit opens EditCard with shortcut pre-filled', async () => {
+      mockShortcuts.value = [
+        makeShortcut({ id: 'edit-me', name: 'MyApp', url: 'https://myapp.com' }),
+      ]
+      const wrapper = mount(DockBar)
+      await nextTick()
+
+      const dockItem = wrapper.find('[data-testid="dock-item"]')
+      await dockItem.trigger('contextmenu', { button: 2 })
+      await nextTick()
+
+      const editItem = wrapper.find('[data-testid="menu-edit"]')
+      await editItem.trigger('click')
+      await nextTick()
+
+      expect(wrapper.text()).toContain('编辑快捷方式')
+      expect(wrapper.text()).toContain('MyApp')
+    })
+
+    it('click delete calls remove()', async () => {
+      mockShortcuts.value = [makeShortcut({ id: 'del-me', name: 'Del' })]
+      const wrapper = mount(DockBar)
+      await nextTick()
+
+      const dockItem = wrapper.find('[data-testid="dock-item"]')
+      await dockItem.trigger('contextmenu', { button: 2 })
+      await nextTick()
+
+      const deleteItem = wrapper.find('[data-testid="menu-delete"]')
+      await deleteItem.trigger('click')
+      await nextTick()
+
+      expect(mockRemove).toHaveBeenCalledWith('del-me')
     })
   })
 
