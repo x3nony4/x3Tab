@@ -12,17 +12,17 @@ import EditCard from './EditCard.vue'
 
 const {
     shortcuts,
-    editMode,
     add,
     update,
     remove,
     reorder,
-    enterEditMode,
-    exitEditMode,
     getIcon
 } = useDock()
 
 const atLimit = () => shortcuts.value.length >= MAX_SHORTCUTS
+
+// EditMode
+const editMode = ref(false)
 
 // EditCard
 const showEditCard = ref(false)
@@ -32,12 +32,7 @@ const editingShortcut = ref<Shortcut | null>(null)
 let dragIndex = -1
 
 function onToggleEdit() {
-    if (editMode.value) {
-        exitEditMode()
-    }
-    else {
-        enterEditMode()
-    }
+    editMode.value = !editMode.value
 }
 
 function onAddClick() {
@@ -89,7 +84,7 @@ function onDrop() {
 
 function onKeydown(e: KeyboardEvent) {
     if (e.key === 'Escape' && editMode.value) {
-        exitEditMode()
+        editMode.value = false
     }
 }
 

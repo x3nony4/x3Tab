@@ -1,6 +1,6 @@
 import type { Ref } from 'vue'
 
-import { readonly, ref } from 'vue'
+import { readonly } from 'vue'
 
 import { useIconStore } from './useIconStore'
 import { useStorage } from './useStorage'
@@ -17,7 +17,6 @@ export const MAX_SHORTCUTS = 15
 
 export function useDock() {
     const { value: shortcuts, item } = useStorage<Shortcut[]>('shortcuts', [])
-    const editMode = ref(false)
     const iconStore = useIconStore()
 
     function add(shortcut: Omit<Shortcut, 'id'>, iconBlob?: string): Shortcut | null {
@@ -57,14 +56,6 @@ export function useDock() {
         item.setValue(shortcuts.value).catch(err => console.error(err))
     }
 
-    function enterEditMode(): void {
-        editMode.value = true
-    }
-
-    function exitEditMode(): void {
-        editMode.value = false
-    }
-
     async function getIcon(id: string): Promise<string | null> {
         try {
             return await iconStore.get(id)
@@ -77,13 +68,10 @@ export function useDock() {
 
     return {
         shortcuts: readonly(shortcuts) as Readonly<Ref<Shortcut[]>>,
-        editMode: readonly(editMode),
         add,
         update,
         remove,
         reorder,
-        enterEditMode,
-        exitEditMode,
         getIcon
     }
 }

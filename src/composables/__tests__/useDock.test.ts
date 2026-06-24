@@ -203,26 +203,6 @@ describe('useDock', () => {
         })
     })
 
-    describe('editMode', () => {
-        it('starts false', () => {
-            const { editMode } = useDock()
-            expect(editMode.value).toBe(false)
-        })
-
-        it('enterEditMode sets true', () => {
-            const { editMode, enterEditMode } = useDock()
-            enterEditMode()
-            expect(editMode.value).toBe(true)
-        })
-
-        it('exitEditMode sets false', () => {
-            const { editMode, enterEditMode, exitEditMode } = useDock()
-            enterEditMode()
-            exitEditMode()
-            expect(editMode.value).toBe(false)
-        })
-    })
-
     describe('external changes', () => {
         it('reacts to shortcuts updated externally', async () => {
             const { shortcuts } = useDock()

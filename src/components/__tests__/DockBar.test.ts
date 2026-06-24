@@ -5,25 +5,19 @@ import { nextTick } from 'vue'
 import type { Shortcut } from '@/composables/useDock'
 
 const mockShortcuts = ref<Shortcut[]>([])
-const mockEditMode = ref(false)
 const mockAdd = vi.fn()
 const mockUpdate = vi.fn()
 const mockRemove = vi.fn()
 const mockReorder = vi.fn()
-const mockEnterEditMode = vi.fn()
-const mockExitEditMode = vi.fn()
 const mockGetIcon = vi.fn()
 
 vi.mock('@/composables/useDock', () => ({
   useDock: vi.fn(() => ({
     shortcuts: mockShortcuts,
-    editMode: mockEditMode,
     add: mockAdd,
     update: mockUpdate,
     remove: mockRemove,
     reorder: mockReorder,
-    enterEditMode: mockEnterEditMode,
-    exitEditMode: mockExitEditMode,
     getIcon: mockGetIcon,
   })),
   MAX_SHORTCUTS: 15,
@@ -43,7 +37,6 @@ function makeShortcut(overrides?: Partial<Shortcut>): Shortcut {
 
 beforeEach(() => {
   mockShortcuts.value = []
-  mockEditMode.value = false
 })
 
 describe('DockBar', () => {
@@ -105,8 +98,9 @@ describe('DockBar', () => {
     })
 
     it('context menu shows "退出编辑" when editMode is true', async () => {
-      mockEditMode.value = true
       const wrapper = mount(DockBar)
+      const ctxMenu = wrapper.findComponent({ name: 'ContextMenu' })
+      await ctxMenu.vm.$emit('toggleEdit')
       await wrapper.find('[data-testid="dock-bar"]').trigger('contextmenu', {
         clientX: 0,
         clientY: 0,
@@ -114,19 +108,27 @@ describe('DockBar', () => {
       expect(wrapper.text()).toContain('退出编辑')
     })
 
-    it('toggle-edit calls enterEditMode when editMode is false', async () => {
+    it('toggle-edit enters edit mode when off', async () => {
       const wrapper = mount(DockBar)
       const ctxMenu = wrapper.findComponent({ name: 'ContextMenu' })
       await ctxMenu.vm.$emit('toggleEdit')
-      expect(mockEnterEditMode).toHaveBeenCalled()
+      await wrapper.find('[data-testid="dock-bar"]').trigger('contextmenu', {
+        clientX: 0,
+        clientY: 0,
+      })
+      expect(wrapper.text()).toContain('退出编辑')
     })
 
-    it('toggle-edit calls exitEditMode when editMode is true', async () => {
-      mockEditMode.value = true
+    it('toggle-edit exits edit mode when on', async () => {
       const wrapper = mount(DockBar)
       const ctxMenu = wrapper.findComponent({ name: 'ContextMenu' })
       await ctxMenu.vm.$emit('toggleEdit')
-      expect(mockExitEditMode).toHaveBeenCalled()
+      await ctxMenu.vm.$emit('toggleEdit')
+      await wrapper.find('[data-testid="dock-bar"]').trigger('contextmenu', {
+        clientX: 0,
+        clientY: 0,
+      })
+      expect(wrapper.text()).toContain('编辑 Docker 栏')
     })
   })
 
@@ -278,12 +280,16 @@ describe('DockBar', () => {
   })
 
   describe('keyboard', () => {
-    it('Escape calls exitEditMode when editMode is true', async () => {
-      mockEditMode.value = true
+    it('Escape exits edit mode when on', async () => {
       const wrapper = mount(DockBar)
-
+      const ctxMenu = wrapper.findComponent({ name: 'ContextMenu' })
+      await ctxMenu.vm.$emit('toggleEdit')
       await wrapper.find('[data-testid="dock-bar"]').trigger('keydown', { key: 'Escape' })
-      expect(mockExitEditMode).toHaveBeenCalled()
+      await wrapper.find('[data-testid="dock-bar"]').trigger('contextmenu', {
+        clientX: 0,
+        clientY: 0,
+      })
+      expect(wrapper.text()).toContain('编辑 Docker 栏')
     })
   })
 })
