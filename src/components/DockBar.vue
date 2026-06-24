@@ -6,7 +6,6 @@ import type { Shortcut } from '@/composables/useDock'
 import { MAX_SHORTCUTS, useDock } from '@/composables/useDock'
 
 import AddButton from './AddButton.vue'
-import ContextMenu from './ContextMenu.vue'
 import DockItem from './DockItem.vue'
 import EditCard from './EditCard.vue'
 
@@ -14,34 +13,17 @@ const {
     shortcuts,
     add,
     update,
-    remove,
-    reorder,
     getIcon
 } = useDock()
 
 const atLimit = () => shortcuts.value.length >= MAX_SHORTCUTS
 
-// EditMode
-const editMode = ref(false)
-
 // EditCard
 const showEditCard = ref(false)
 const editingShortcut = ref<Shortcut | null>(null)
 
-// Drag state
-let dragIndex = -1
-
-function onToggleEdit() {
-    editMode.value = !editMode.value
-}
-
 function onAddClick() {
     editingShortcut.value = null
-    showEditCard.value = true
-}
-
-function onEdit(id: string) {
-    editingShortcut.value = shortcuts.value.find(s => s.id === id) ?? null
     showEditCard.value = true
 }
 
@@ -63,31 +45,6 @@ function onCancel() {
     editingShortcut.value = null
 }
 
-function onDelete(id: string) {
-    remove(id)
-}
-
-function onDragStart(index: number) {
-    dragIndex = index
-}
-
-function onDragOver(index: number) {
-    if (dragIndex === -1 || dragIndex === index)
-        return
-    reorder(dragIndex, index)
-    dragIndex = index
-}
-
-function onDrop() {
-    dragIndex = -1
-}
-
-function onKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape' && editMode.value) {
-        editMode.value = false
-    }
-}
-
 function onEditCardOpenChange(open: boolean) {
     if (!open)
         editingShortcut.value = null
@@ -95,36 +52,23 @@ function onEditCardOpenChange(open: boolean) {
 </script>
 
 <template>
-  <ContextMenu
-    :edit-mode="editMode"
-    @toggle-edit="onToggleEdit"
+  <div
+    data-testid="dock-bar"
+    class="px-3 py-2 bg-surface-glass backdrop-blur-xl rounded-t-2xl border border-surface-glass-border border-b-0"
   >
-    <div
-      data-testid="dock-bar"
-      class="px-3 py-2 bg-surface-glass backdrop-blur-xl rounded-t-2xl border border-surface-glass-border border-b-0"
-      @keydown="onKeydown"
-    >
-      <div class="flex items-center gap-2 overflow-x-auto scrollbar-none [&::-webkit-scrollbar]:hidden">
-        <DockItem
-          v-for="(shortcut, index) in shortcuts"
-          :key="shortcut.id"
-          :shortcut="shortcut"
-          :edit-mode="editMode"
-          :index="index"
-          :get-icon="getIcon"
-          @edit="onEdit"
-          @delete="onDelete"
-          @dragstart="onDragStart"
-          @dragover.prevent="onDragOver(index)"
-          @drop="onDrop"
-        />
-        <AddButton
-          :disabled="atLimit()"
-          @click="onAddClick"
-        />
-      </div>
+    <div class="flex items-center gap-2 overflow-x-auto scrollbar-none [&::-webkit-scrollbar]:hidden">
+      <DockItem
+        v-for="shortcut in shortcuts"
+        :key="shortcut.id"
+        :shortcut="shortcut"
+        :get-icon="getIcon"
+      />
+      <AddButton
+        :disabled="atLimit()"
+        @click="onAddClick"
+      />
     </div>
-  </ContextMenu>
+  </div>
 
   <EditCard
     v-model:open="showEditCard"
