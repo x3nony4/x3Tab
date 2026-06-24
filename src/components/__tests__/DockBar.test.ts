@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ref } from 'vue'
+import { defineComponent, h, ref } from 'vue'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import type { Shortcut } from '@/composables/useDock'
@@ -7,6 +7,8 @@ import type { Shortcut } from '@/composables/useDock'
 const mockShortcuts = ref<Shortcut[]>([])
 const mockAdd = vi.fn()
 const mockUpdate = vi.fn()
+const mockRemove = vi.fn()
+const mockReorder = vi.fn()
 const mockGetIcon = vi.fn()
 
 vi.mock('@/composables/useDock', () => ({
@@ -14,9 +16,20 @@ vi.mock('@/composables/useDock', () => ({
     shortcuts: mockShortcuts,
     add: mockAdd,
     update: mockUpdate,
+    remove: mockRemove,
+    reorder: mockReorder,
     getIcon: mockGetIcon,
   })),
   MAX_SHORTCUTS: 15,
+}))
+
+vi.mock('@/composables/useLongPressDrag', () => ({
+  useLongPressDrag: vi.fn(() => ({
+    onPointerDown: vi.fn(),
+    onPointerMove: vi.fn(),
+    onPointerUp: vi.fn(),
+    dragControls: {},
+  })),
 }))
 
 import DockBar from '../DockBar.vue'
@@ -31,16 +44,45 @@ function makeShortcut(overrides?: Partial<Shortcut>): Shortcut {
   }
 }
 
+function mountDockBar() {
+  return mount(DockBar, {
+    global: {
+      stubs: {
+        ReorderGroup: defineComponent({
+          props: ['axis', 'values', 'as'],
+          setup(_props, { slots }) {
+            return () => h('div', { 'data-testid': 'reorder-group' }, slots.default?.())
+          },
+        }),
+        ReorderItem: defineComponent({
+          props: ['value', 'dragControls', 'dragListener', 'whileDrag', 'whileHover', 'exit', 'as'],
+          setup(_props, { slots }) {
+            return () => h('div', { 'data-testid': 'reorder-item' }, slots.default?.({ isDragging: false }))
+          },
+        }),
+        AnimatePresence: defineComponent({
+          props: ['mode', 'initial'],
+          setup(_props, { slots }) {
+            return () => slots.default?.()
+          },
+        }),
+      },
+    },
+  })
+}
+
 beforeEach(() => {
   mockShortcuts.value = []
   mockAdd.mockClear()
   mockUpdate.mockClear()
+  mockRemove.mockClear()
+  mockReorder.mockClear()
 })
 
 describe('DockBar', () => {
   describe('rendering', () => {
     it('renders container', () => {
-      const wrapper = mount(DockBar)
+      const wrapper = mountDockBar()
       expect(wrapper.find('[data-testid="dock-bar"]').exists()).toBe(true)
     })
 
@@ -49,13 +91,13 @@ describe('DockBar', () => {
         makeShortcut({ id: 'a', name: 'A' }),
         makeShortcut({ id: 'b', name: 'B' }),
       ]
-      const wrapper = mount(DockBar)
+      const wrapper = mountDockBar()
       expect(wrapper.text()).toContain('A')
       expect(wrapper.text()).toContain('B')
     })
 
     it('renders AddButton', () => {
-      const wrapper = mount(DockBar)
+      const wrapper = mountDockBar()
       expect(wrapper.find('button').exists()).toBe(true)
     })
 
@@ -63,35 +105,87 @@ describe('DockBar', () => {
       mockShortcuts.value = Array.from({ length: 15 }, (_, i) =>
         makeShortcut({ id: `s${i}`, name: `S${i}`, url: `https://x.com/${i}` }),
       )
-      const wrapper = mount(DockBar)
+      const wrapper = mountDockBar()
       const btn = wrapper.find('button')
       expect(btn.attributes('disabled')).toBeDefined()
     })
 
     it('AddButton is enabled when under limit', () => {
       mockShortcuts.value = [makeShortcut()]
-      const wrapper = mount(DockBar)
+      const wrapper = mountDockBar()
       const btn = wrapper.find('button')
       expect(btn.attributes('disabled')).toBeUndefined()
     })
 
     it('shows empty bar with only AddButton when no shortcuts', () => {
       mockShortcuts.value = []
-      const wrapper = mount(DockBar)
+      const wrapper = mountDockBar()
       expect(wrapper.find('button').exists()).toBe(true)
       expect(wrapper.findAll('[data-testid="dock-item"]')).toHaveLength(0)
     })
   })
 
+  describe('context menu', () => {
+    it('shows edit and delete items on right-click', async () => {
+      mockShortcuts.value = [makeShortcut({ id: 'a', name: 'A' })]
+      const wrapper = mountDockBar()
+      await nextTick()
+
+      const dockItem = wrapper.find('[data-testid="dock-item"]')
+      await dockItem.trigger('contextmenu', { button: 2 })
+      await nextTick()
+
+      const menuItems = wrapper.findAll('[role="menuitem"]')
+      expect(menuItems).toHaveLength(2)
+      expect(menuItems[0].text()).toBe('编辑')
+      expect(menuItems[1].text()).toBe('删除')
+    })
+
+    it('click edit opens EditCard with shortcut pre-filled', async () => {
+      mockShortcuts.value = [
+        makeShortcut({ id: 'edit-me', name: 'MyApp', url: 'https://myapp.com' }),
+      ]
+      const wrapper = mountDockBar()
+      await nextTick()
+
+      const dockItem = wrapper.find('[data-testid="dock-item"]')
+      await dockItem.trigger('contextmenu', { button: 2 })
+      await nextTick()
+
+      const editItem = wrapper.find('[data-testid="menu-edit"]')
+      await editItem.trigger('click')
+      await nextTick()
+
+      expect(wrapper.text()).toContain('编辑快捷方式')
+      expect(wrapper.text()).toContain('MyApp')
+    })
+
+    it('click delete calls remove()', async () => {
+      mockShortcuts.value = [makeShortcut({ id: 'del-me', name: 'Del' })]
+      const wrapper = mountDockBar()
+      await nextTick()
+
+      const dockItem = wrapper.find('[data-testid="dock-item"]')
+      await dockItem.trigger('contextmenu', { button: 2 })
+      await nextTick()
+
+      const deleteItem = wrapper.find('[data-testid="menu-delete"]')
+      await deleteItem.trigger('click')
+      await nextTick()
+
+      expect(mockRemove).toHaveBeenCalledWith('del-me')
+    })
+  })
+
   describe('EditCard', () => {
     it('opens EditCard on AddButton click (create mode)', async () => {
-      const wrapper = mount(DockBar)
+      const wrapper = mountDockBar()
       await wrapper.find('button').trigger('click')
       expect(wrapper.text()).toContain('添加快捷方式')
     })
 
     it('save in create mode calls add()', async () => {
-      const wrapper = mount(DockBar)
+      const wrapper = mountDockBar()
       await wrapper.find('button').trigger('click')
 
       const editCard = wrapper.findComponent({ name: 'EditCard' })
@@ -108,7 +202,7 @@ describe('DockBar', () => {
     })
 
     it('save in create mode with upload passes iconBlob to add', async () => {
-      const wrapper = mount(DockBar)
+      const wrapper = mountDockBar()
       await wrapper.find('button').trigger('click')
 
       const editCard = wrapper.findComponent({ name: 'EditCard' })
@@ -125,7 +219,7 @@ describe('DockBar', () => {
     })
 
     it('cancel closes EditCard', async () => {
-      const wrapper = mount(DockBar)
+      const wrapper = mountDockBar()
       await wrapper.find('button').trigger('click')
       expect(wrapper.text()).toContain('添加快捷方式')
 
