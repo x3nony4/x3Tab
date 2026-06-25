@@ -1,11 +1,12 @@
-import { readonly, watch } from 'vue'
+import { readonly, ref, watch } from 'vue'
 
-import { useStorage } from './useStorage'
+import { defineLocalStorage } from '@/utils/localStorage'
 
 type Theme = 'dark' | 'light'
 
 export function useTheme() {
-    const { value: theme, item } = useStorage<Theme>('theme', 'dark')
+    const store = defineLocalStorage<Theme>('theme', 'dark')
+    const theme = ref<Theme>('dark')
     let ready = false
 
     /**
@@ -13,13 +14,8 @@ export function useTheme() {
      * Must be called once, before any toggle.
      */
     async function init(): Promise<void> {
-        const stored = await storage.getItem<Theme>('local:theme')
-        if (stored) {
-            theme.value = stored
-        }
-        else {
-            theme.value = getSystemPreference()
-        }
+        await store.init(getSystemPreference)
+        theme.value = await store.get()
         apply(theme.value)
         ready = true
     }
@@ -37,16 +33,7 @@ export function useTheme() {
         if (!ready)
             return
         apply(t)
-        await item.setValue(t)
-    })
-
-    // React to external storage changes
-    item.watch((newVal: Theme) => {
-        if (!ready)
-            return
-        if (newVal && newVal !== theme.value) {
-            theme.value = newVal
-        }
+        await store.set(t)
     })
 
     return { theme: readonly(theme), toggle, init }

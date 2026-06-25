@@ -99,15 +99,4 @@ describe('useTheme', () => {
         const result = await browser.storage.local.get('theme')
         expect(result['theme']).toBeUndefined()
     })
-
-    it('reacts to external storage changes after init', async () => {
-        const { theme, init } = useTheme()
-        await init()
-
-        // Simulate external storage change
-        await browser.storage.local.set({ 'theme': 'light' })
-        await flush()
-
-        expect(theme.value).toBe('light')
-    })
 })
