@@ -1,8 +1,15 @@
-import { describe, it, expect, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import { DOMWrapper, mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import type { Shortcut } from '@/composables/useDock'
 import EditCard from '../EditCard.vue'
+
+let wrapper: VueWrapper<unknown>
+
+afterEach(() => {
+  if (wrapper) wrapper.unmount()
+})
 
 function makeShortcut(overrides?: Partial<Shortcut>): Shortcut {
   return {
@@ -14,122 +21,156 @@ function makeShortcut(overrides?: Partial<Shortcut>): Shortcut {
   }
 }
 
-/** Get save button (last button in component). */
-function saveBtn(wrapper: ReturnType<typeof mount>) {
-  const btns = wrapper.findAll('button')
+/** Get all buttons rendered in document body (portal). */
+function bodyButtons(): NodeListOf<HTMLButtonElement> {
+  return document.body.querySelectorAll('button')
+}
+
+/** Save button is the last button in the dialog. */
+function saveBtnEl() {
+  const btns = bodyButtons()
   return btns[btns.length - 1]
 }
 
-/** Get cancel button (first button in component). */
-function cancelBtn(wrapper: ReturnType<typeof mount>) {
-  return wrapper.findAll('button')[0]
+/** Cancel button is the first button in the dialog. */
+function cancelBtnEl() {
+  return bodyButtons()[0]
 }
 
 function mountCard(props?: Partial<{ shortcut: Shortcut | null, open: boolean }>) {
-  return mount(EditCard, {
+  wrapper = mount(EditCard, {
     props: { shortcut: null, open: true, ...props },
+    attachTo: document.body,
   })
+  return wrapper
+}
+
+function textInputs(): NodeListOf<HTMLInputElement> {
+  return document.body.querySelectorAll('input[type="text"]')
+}
+
+function textInput(n: number): HTMLInputElement {
+  return textInputs()[n]
 }
 
 describe('EditCard', () => {
   describe('render modes', () => {
-    it('renders create mode title and empty fields', () => {
-      const wrapper = mountCard()
-      expect(wrapper.text()).toContain('添加快捷方式')
-      const inputs = wrapper.findAll('input[type="text"]')
-      expect((inputs[0].element as HTMLInputElement).value).toBe('')
-      expect((inputs[1].element as HTMLInputElement).value).toBe('')
+    it('renders create mode title and empty fields', async () => {
+      mountCard()
+      await nextTick()
+      expect(document.body.textContent).toContain('添加快捷方式')
+      expect(textInput(0).value).toBe('')
+      expect(textInput(1).value).toBe('')
     })
 
-    it('renders edit mode title and pre-filled fields', () => {
-      const wrapper = mountCard({ shortcut: makeShortcut({ name: 'MyApp', url: 'https://myapp.com' }) })
-      expect(wrapper.text()).toContain('编辑快捷方式')
-      const inputs = wrapper.findAll('input[type="text"]')
-      expect((inputs[0].element as HTMLInputElement).value).toBe('MyApp')
-      expect((inputs[1].element as HTMLInputElement).value).toBe('https://myapp.com')
+    it('renders edit mode title and pre-filled fields', async () => {
+      mountCard({ shortcut: makeShortcut({ name: 'MyApp', url: 'https://myapp.com' }) })
+      await nextTick()
+      expect(document.body.textContent).toContain('编辑快捷方式')
+      expect(textInput(0).value).toBe('MyApp')
+      expect(textInput(1).value).toBe('https://myapp.com')
     })
 
-    it('defaults to online icon type in create mode', () => {
-      const wrapper = mountCard()
-      const onlineRadio = wrapper.find('input[value="online"]')
-      expect((onlineRadio.element as HTMLInputElement).checked).toBe(true)
+    it('defaults to online icon type in create mode', async () => {
+      mountCard()
+      await nextTick()
+      const onlineRadio = document.body.querySelector<HTMLInputElement>('input[value="online"]')
+      expect(onlineRadio?.checked).toBe(true)
     })
   })
 
   describe('icon type conditional UI', () => {
-    it('shows color picker when solid is selected', () => {
-      const wrapper = mountCard({ shortcut: makeShortcut({ iconType: 'solid' }) })
-      expect(wrapper.find('input[type="color"]').exists()).toBe(true)
+    it('shows color picker when solid is selected', async () => {
+      mountCard({ shortcut: makeShortcut({ iconType: 'solid' }) })
+      await nextTick()
+      expect(document.body.querySelector('input[type="color"]')).toBeTruthy()
     })
 
-    it('shows file input when upload is selected', () => {
-      const wrapper = mountCard({ shortcut: makeShortcut({ iconType: 'upload' }) })
-      expect(wrapper.find('input[type="file"]').exists()).toBe(true)
+    it('shows file input when upload is selected', async () => {
+      mountCard({ shortcut: makeShortcut({ iconType: 'upload' }) })
+      await nextTick()
+      expect(document.body.querySelector('input[type="file"]')).toBeTruthy()
     })
 
-    it('shows helper text when online is selected', () => {
-      const wrapper = mountCard({ shortcut: makeShortcut({ iconType: 'online' }) })
-      expect(wrapper.text()).toContain('将自动从网站获取 favicon 图标')
+    it('shows helper text when online is selected', async () => {
+      mountCard({ shortcut: makeShortcut({ iconType: 'online' }) })
+      await nextTick()
+      expect(document.body.textContent).toContain('将自动从网站获取 favicon 图标')
     })
 
-    it('hides color picker and file input for online type', () => {
-      const wrapper = mountCard({ shortcut: makeShortcut({ iconType: 'online' }) })
-      expect(wrapper.find('input[type="color"]').exists()).toBe(false)
-      expect(wrapper.find('input[type="file"]').exists()).toBe(false)
+    it('hides color picker and file input for online type', async () => {
+      mountCard({ shortcut: makeShortcut({ iconType: 'online' }) })
+      await nextTick()
+      expect(document.body.querySelector('input[type="color"]')).toBeNull()
+      expect(document.body.querySelector('input[type="file"]')).toBeNull()
     })
   })
 
   describe('validation', () => {
     it('shows name error when empty', async () => {
-      const wrapper = mountCard()
-      const inputs = wrapper.findAll('input[type="text"]')
-      await inputs[1].setValue('https://example.com')
-      await saveBtn(wrapper).trigger('click')
-      expect(wrapper.text()).toContain('名称不能为空')
+      mountCard()
+      await nextTick()
+      textInput(1).value = 'https://example.com'
+      textInput(1).dispatchEvent(new Event('input'))
+      saveBtnEl()?.click()
+      await nextTick()
+      expect(document.body.textContent).toContain('名称不能为空')
       expect(wrapper.emitted('save')).toBeUndefined()
     })
 
     it('shows url error when empty', async () => {
-      const wrapper = mountCard()
-      const inputs = wrapper.findAll('input[type="text"]')
-      await inputs[0].setValue('MyApp')
-      await saveBtn(wrapper).trigger('click')
-      expect(wrapper.text()).toContain('URL 不能为空')
+      mountCard()
+      await nextTick()
+      textInput(0).value = 'MyApp'
+      textInput(0).dispatchEvent(new Event('input'))
+      saveBtnEl()?.click()
+      await nextTick()
+      expect(document.body.textContent).toContain('URL 不能为空')
       expect(wrapper.emitted('save')).toBeUndefined()
     })
 
     it('shows url format error for invalid URL', async () => {
-      const wrapper = mountCard()
-      const inputs = wrapper.findAll('input[type="text"]')
-      await inputs[0].setValue('MyApp')
-      await inputs[1].setValue('not-a-valid-url')
-      await saveBtn(wrapper).trigger('click')
-      expect(wrapper.text()).toContain('URL 格式不正确')
+      mountCard()
+      await nextTick()
+      textInput(0).value = 'MyApp'
+      textInput(0).dispatchEvent(new Event('input'))
+      textInput(1).value = 'not-a-valid-url'
+      textInput(1).dispatchEvent(new Event('input'))
+      saveBtnEl()?.click()
+      await nextTick()
+      expect(document.body.textContent).toContain('URL 格式不正确')
       expect(wrapper.emitted('save')).toBeUndefined()
     })
 
     it('clears errors on subsequent valid save', async () => {
-      const wrapper = mountCard()
-      const inputs = wrapper.findAll('input[type="text"]')
+      mountCard()
+      await nextTick()
 
-      await saveBtn(wrapper).trigger('click')
-      expect(wrapper.text()).toContain('名称不能为空')
+      saveBtnEl()?.click()
+      await nextTick()
+      expect(document.body.textContent).toContain('名称不能为空')
 
-      await inputs[0].setValue('MyApp')
-      await inputs[1].setValue('https://example.com')
-      await saveBtn(wrapper).trigger('click')
-      expect(wrapper.text()).not.toContain('名称不能为空')
+      textInput(0).value = 'MyApp'
+      textInput(0).dispatchEvent(new Event('input'))
+      textInput(1).value = 'https://example.com'
+      textInput(1).dispatchEvent(new Event('input'))
+      saveBtnEl()?.click()
+      await nextTick()
+      expect(document.body.textContent).not.toContain('名称不能为空')
       expect(wrapper.emitted('save')).toHaveLength(1)
     })
   })
 
   describe('save emit', () => {
     it('emits save with form data for online type', async () => {
-      const wrapper = mountCard()
-      const inputs = wrapper.findAll('input[type="text"]')
-      await inputs[0].setValue('My Site')
-      await inputs[1].setValue('https://mysite.com')
-      await saveBtn(wrapper).trigger('click')
+      mountCard()
+      await nextTick()
+      textInput(0).value = 'My Site'
+      textInput(0).dispatchEvent(new Event('input'))
+      textInput(1).value = 'https://mysite.com'
+      textInput(1).dispatchEvent(new Event('input'))
+      saveBtnEl()?.click()
+      await nextTick()
 
       expect(wrapper.emitted('save')).toHaveLength(1)
       expect(wrapper.emitted('save')![0]).toEqual([{
@@ -142,17 +183,24 @@ describe('EditCard', () => {
     })
 
     it('emits save with solidColor for solid type', async () => {
-      const wrapper = mountCard()
-      const inputs = wrapper.findAll('input[type="text"]')
-      await inputs[0].setValue('Red App')
-      await inputs[1].setValue('https://red.app')
+      mountCard()
+      await nextTick()
+      textInput(0).value = 'Red App'
+      textInput(0).dispatchEvent(new Event('input'))
+      textInput(1).value = 'https://red.app'
+      textInput(1).dispatchEvent(new Event('input'))
 
-      const solidRadio = wrapper.find('input[value="solid"]')
-      await solidRadio.setValue(true)
-      const colorInput = wrapper.find('input[type="color"]')
-      await colorInput.setValue('#ff0000')
+      const solidRadio = document.body.querySelector<HTMLInputElement>('input[value="solid"]')
+      solidRadio!.checked = true
+      solidRadio!.dispatchEvent(new Event('change'))
+      await nextTick()
 
-      await saveBtn(wrapper).trigger('click')
+      const colorInput = document.body.querySelector<HTMLInputElement>('input[type="color"]')
+      colorInput!.value = '#ff0000'
+      colorInput!.dispatchEvent(new Event('input'))
+
+      saveBtnEl()?.click()
+      await nextTick()
 
       const payload = wrapper.emitted('save')![0][0] as Record<string, unknown>
       expect(payload.name).toBe('Red App')
@@ -161,11 +209,14 @@ describe('EditCard', () => {
     })
 
     it('does not include solidColor for non-solid types', async () => {
-      const wrapper = mountCard()
-      const inputs = wrapper.findAll('input[type="text"]')
-      await inputs[0].setValue('Online App')
-      await inputs[1].setValue('https://online.app')
-      await saveBtn(wrapper).trigger('click')
+      mountCard()
+      await nextTick()
+      textInput(0).value = 'Online App'
+      textInput(0).dispatchEvent(new Event('input'))
+      textInput(1).value = 'https://online.app'
+      textInput(1).dispatchEvent(new Event('input'))
+      saveBtnEl()?.click()
+      await nextTick()
 
       const payload = wrapper.emitted('save')![0][0] as Record<string, unknown>
       expect(payload.solidColor).toBeUndefined()
@@ -174,25 +225,24 @@ describe('EditCard', () => {
 
   describe('cancel emit', () => {
     it('emits cancel on cancel button click', async () => {
-      const wrapper = mountCard()
-      await cancelBtn(wrapper).trigger('click')
+      mountCard()
+      await nextTick()
+      cancelBtnEl()?.click()
+      await nextTick()
       expect(wrapper.emitted('cancel')).toHaveLength(1)
     })
-
-    // Note: overlay click → close is handled by Reka DialogOverlay internals.
-    // Reka requires the overlay to be inside document.body for its pointerdown
-    // capture handler to work, which doesn't apply in jsdom detached mounts.
-    // Trust Reka's built-in behavior for Escape/overlay dismissal.
   })
 
   describe('file upload', () => {
     it('reads file and shows preview for upload type', async () => {
-      const wrapper = mountCard({ shortcut: makeShortcut({ iconType: 'upload' }) })
+      mountCard({ shortcut: makeShortcut({ iconType: 'upload' }) })
+      await nextTick()
 
       const file = new File(['dummy'], 'icon.png', { type: 'image/png' })
-      const fileInput = wrapper.find('input[type="file"]')
+      const fileInputEl = document.body.querySelector<HTMLInputElement>('input[type="file"]')
+      expect(fileInputEl).toBeTruthy()
       const mockFiles = { 0: file, length: 1, item: (i: number) => i === 0 ? file : null } as unknown as FileList
-      Object.defineProperty(fileInput.element, 'files', { value: mockFiles, configurable: true })
+      Object.defineProperty(fileInputEl!, 'files', { value: mockFiles, configurable: true })
 
       // Mock FileReader to fire onload synchronously
       const orig = FileReader.prototype.readAsDataURL
@@ -201,27 +251,29 @@ describe('EditCard', () => {
         this.onload?.({} as ProgressEvent<FileReader>)
       })
 
-      await fileInput.trigger('change')
+      await new DOMWrapper(fileInputEl!).trigger('change')
       await nextTick()
 
       FileReader.prototype.readAsDataURL = orig
 
-      const preview = wrapper.find('img[alt="预览"]')
-      expect(preview.exists()).toBe(true)
-      expect(preview.attributes('src')).toBe('data:image/png;base64,abc123')
+      const preview = document.body.querySelector<HTMLImageElement>('img[alt="预览"]')
+      expect(preview).toBeTruthy()
+      expect(preview?.getAttribute('src')).toBe('data:image/png;base64,abc123')
     })
   })
 
   describe('solid color', () => {
-    it('initializes with random hex color in create mode', () => {
-      const wrapper = mountCard({ shortcut: makeShortcut({ iconType: 'solid' }) })
-      const val = (wrapper.find('input[type="color"]').element as HTMLInputElement).value
+    it('initializes with random hex color in create mode', async () => {
+      mountCard({ shortcut: makeShortcut({ iconType: 'solid' }) })
+      await nextTick()
+      const val = (document.body.querySelector<HTMLInputElement>('input[type="color"]')!).value
       expect(val).toMatch(/^#[0-9a-f]{6}$/)
     })
 
-    it('uses provided solidColor in edit mode', () => {
-      const wrapper = mountCard({ shortcut: makeShortcut({ iconType: 'solid', solidColor: '#00ff00' }) })
-      expect((wrapper.find('input[type="color"]').element as HTMLInputElement).value).toBe('#00ff00')
+    it('uses provided solidColor in edit mode', async () => {
+      mountCard({ shortcut: makeShortcut({ iconType: 'solid', solidColor: '#00ff00' }) })
+      await nextTick()
+      expect((document.body.querySelector<HTMLInputElement>('input[type="color"]')!).value).toBe('#00ff00')
     })
   })
 })

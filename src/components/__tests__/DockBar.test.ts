@@ -156,7 +156,8 @@ describe('DockBar', () => {
       await editItem.trigger('click')
       await nextTick()
 
-      expect(wrapper.text()).toContain('编辑快捷方式')
+      expect(document.body.textContent).toContain('编辑快捷方式')
+      // Dock item name is still visible in wrapper (dialog is portal-rendered to body)
       expect(wrapper.text()).toContain('MyApp')
     })
 
@@ -181,12 +182,13 @@ describe('DockBar', () => {
     it('opens EditCard on AddButton click (create mode)', async () => {
       const wrapper = mountDockBar()
       await wrapper.find('button').trigger('click')
-      expect(wrapper.text()).toContain('添加快捷方式')
+      expect(document.body.textContent).toContain('添加快捷方式')
     })
 
     it('save in create mode calls add()', async () => {
       const wrapper = mountDockBar()
       await wrapper.find('button').trigger('click')
+      await nextTick()
 
       const editCard = wrapper.findComponent({ name: 'EditCard' })
       await editCard.vm.$emit('save', {
@@ -221,7 +223,8 @@ describe('DockBar', () => {
     it('cancel closes EditCard', async () => {
       const wrapper = mountDockBar()
       await wrapper.find('button').trigger('click')
-      expect(wrapper.text()).toContain('添加快捷方式')
+      await nextTick()
+      expect(document.body.textContent).toContain('添加快捷方式')
 
       const editCard = wrapper.findComponent({ name: 'EditCard' })
       await editCard.vm.$emit('cancel')

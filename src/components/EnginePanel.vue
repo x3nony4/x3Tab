@@ -1,12 +1,14 @@
 <script lang="ts" setup>
 import { PlusIcon, XMarkIcon } from '@heroicons/vue/24/outline'
-import { DialogContent, DialogOverlay, DialogRoot, DialogTitle, PopoverContent } from 'reka-ui'
+import { PopoverContent } from 'reka-ui'
 import { computed, inject, ref } from 'vue'
 
 import type { SearchEngine } from '@/entrypoints/newtab/engines'
 
 import { useStorage } from '@/composables/useStorage'
 import { DEFAULT_ENGINES, generateEngineId, randomEngineColor } from '@/entrypoints/newtab/engines'
+
+import FormDialog from './FormDialog.vue'
 
 const emit = defineEmits<{
     select: [engine: SearchEngine]
@@ -124,58 +126,43 @@ function selectEngine(engine: SearchEngine) {
         <span class="engine-name text-[11px] text-text-secondary max-w-16 overflow-hidden text-ellipsis whitespace-nowrap">添加</span>
       </div>
     </div>
-
-    <!-- Add form dialog -->
-    <DialogRoot v-model:open="showAddForm">
-      <DialogOverlay class="fixed inset-0 z-100 bg-black/40" />
-      <DialogContent class="fixed left-1/2 top-1/2 z-100 w-90 max-w-[90vw] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-bg border border-border p-6 text-text-primary">
-        <DialogTitle class="mb-5 text-base font-semibold">
-          添加搜索引擎
-        </DialogTitle>
-
-        <label class="mb-3.5 block">
-          <span class="block mb-1.5 text-xs text-text-secondary">名称</span>
-          <input
-            v-model="newName"
-            class="w-full h-10 px-3 bg-surface-elevated border border-surface-border rounded-lg text-sm text-text-primary outline-none transition-colors focus:border-surface-border-focus"
-            type="text"
-            placeholder="例如：GitHub"
-            @keydown.enter="confirmAdd"
-          >
-        </label>
-
-        <label class="mb-3.5 block">
-          <span class="block mb-1.5 text-xs text-text-secondary">URL 模板</span>
-          <input
-            v-model="newUrl"
-            class="w-full h-10 px-3 bg-surface-elevated border border-surface-border rounded-lg text-sm text-text-primary outline-none transition-colors focus:border-surface-border-focus"
-            type="text"
-            placeholder="例如：https://github.com/search?q=%s"
-            @keydown.enter="confirmAdd"
-          >
-        </label>
-
-        <div v-if="addError" class="text-danger text-xs mb-3">
-          {{ addError }}
-        </div>
-
-        <div class="flex justify-end gap-2 mt-1">
-          <button
-            class="h-9 px-4 rounded-lg border-none bg-white/10 text-sm text-text-primary cursor-pointer transition-opacity hover:opacity-85"
-            @click="cancelAdd"
-          >
-            取消
-          </button>
-          <button
-            class="h-9 px-4 rounded-lg border-none bg-accent text-sm text-white cursor-pointer transition-opacity hover:opacity-85"
-            @click="confirmAdd"
-          >
-            添加
-          </button>
-        </div>
-      </DialogContent>
-    </DialogRoot>
   </PopoverContent>
+
+  <!-- Add form dialog -->
+  <FormDialog
+    v-model:open="showAddForm"
+    title="添加搜索引擎"
+    :width="360"
+    confirm-label="添加"
+    @confirm="confirmAdd"
+    @cancel="cancelAdd"
+  >
+    <label class="mb-3.5 block">
+      <span class="mb-1.5 block text-xs text-text-secondary">名称</span>
+      <input
+        v-model="newName"
+        class="h-10 w-full rounded-lg border border-surface-border bg-surface-elevated px-3 text-sm text-text-primary outline-none transition-colors focus:border-surface-border-focus"
+        type="text"
+        placeholder="例如：GitHub"
+        @keydown.enter="confirmAdd"
+      >
+    </label>
+
+    <label class="mb-3.5 block">
+      <span class="mb-1.5 block text-xs text-text-secondary">URL 模板</span>
+      <input
+        v-model="newUrl"
+        class="h-10 w-full rounded-lg border border-surface-border bg-surface-elevated px-3 text-sm text-text-primary outline-none transition-colors focus:border-surface-border-focus"
+        type="text"
+        placeholder="例如：https://github.com/search?q=%s"
+        @keydown.enter="confirmAdd"
+      >
+    </label>
+
+    <div v-if="addError" class="mb-3 text-xs text-danger">
+      {{ addError }}
+    </div>
+  </FormDialog>
 </template>
 
 <style>

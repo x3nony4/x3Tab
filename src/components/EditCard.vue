@@ -1,8 +1,9 @@
 <script lang="ts" setup>
-import { DialogContent, DialogOverlay, DialogRoot, DialogTitle } from 'reka-ui'
 import { computed, reactive, ref } from 'vue'
 
 import type { Shortcut } from '@/composables/useDock'
+
+import FormDialog from './FormDialog.vue'
 
 const props = defineProps<{
     shortcut: Shortcut | null
@@ -36,6 +37,17 @@ const uploadDataUrl = ref<string | null>(null)
 const uploadPreview = ref<string | null>(null)
 
 const errors = reactive<{ name?: string, url?: string }>({})
+
+watch(() => props.shortcut, (s) => {
+    name.value = s?.name ?? ''
+    url.value = s?.url ?? ''
+    iconType.value = s?.iconType ?? 'online'
+    solidColor.value = s?.solidColor ?? randomColor()
+    uploadDataUrl.value = null
+    uploadPreview.value = null
+    errors.name = undefined
+    errors.url = undefined
+})
 
 function validate(): boolean {
     errors.name = undefined
@@ -93,99 +105,80 @@ function handleCancel() {
 </script>
 
 <template>
-  <DialogRoot v-model:open="isOpen">
-    <DialogOverlay class="fixed inset-0 z-200 bg-black/40" />
-    <DialogContent class="fixed left-1/2 top-1/2 z-200 w-100 -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-bg p-6 text-text-primary">
-      <DialogTitle class="mb-5 text-lg font-semibold">
-        {{ title }}
-      </DialogTitle>
+  <FormDialog
+    v-model:open="isOpen"
+    :title="title"
+    :width="400"
+    @confirm="handleSave"
+    @cancel="handleCancel"
+  >
+    <!-- Name -->
+    <label class="mb-4 block">
+      <span class="mb-1.5 block text-[13px] font-medium text-text-secondary">名称</span>
+      <input
+        v-model="name"
+        class="w-full rounded-lg border bg-white/8 px-3 py-2 text-sm text-text-primary outline-none transition-colors" :class="[
+          errors.name ? 'border-danger' : 'border-border focus:border-accent',
+        ]"
+        type="text"
+        placeholder="例如：GitHub"
+      >
+      <span v-if="errors.name" class="mt-1 block text-xs text-danger">{{ errors.name }}</span>
+    </label>
 
-      <!-- Name -->
-      <label class="mb-4 block">
-        <span class="mb-1.5 block text-[13px] font-medium text-text-secondary">名称</span>
-        <input
-          v-model="name"
-          class="w-full rounded-lg border bg-white/8 px-3 py-2 text-sm text-text-primary outline-none transition-colors" :class="[
-            errors.name ? 'border-danger' : 'border-border focus:border-accent',
-          ]"
-          type="text"
-          placeholder="例如：GitHub"
-        >
-        <span v-if="errors.name" class="mt-1 block text-xs text-danger">{{ errors.name }}</span>
-      </label>
+    <!-- URL -->
+    <label class="mb-4 block">
+      <span class="mb-1.5 block text-[13px] font-medium text-text-secondary">URL</span>
+      <input
+        v-model="url"
+        class="w-full rounded-lg border bg-white/8 px-3 py-2 text-sm text-text-primary outline-none transition-colors" :class="[
+          errors.url ? 'border-danger' : 'border-border focus:border-accent',
+        ]"
+        type="text"
+        placeholder="https://example.com"
+      >
+      <span v-if="errors.url" class="mt-1 block text-xs text-danger">{{ errors.url }}</span>
+    </label>
 
-      <!-- URL -->
-      <label class="mb-4 block">
-        <span class="mb-1.5 block text-[13px] font-medium text-text-secondary">URL</span>
-        <input
-          v-model="url"
-          class="w-full rounded-lg border bg-white/8 px-3 py-2 text-sm text-text-primary outline-none transition-colors" :class="[
-            errors.url ? 'border-danger' : 'border-border focus:border-accent',
-          ]"
-          type="text"
-          placeholder="https://example.com"
-        >
-        <span v-if="errors.url" class="mt-1 block text-xs text-danger">{{ errors.url }}</span>
-      </label>
-
-      <!-- Icon type -->
-      <fieldset class="mb-4 block border-none p-0">
-        <legend class="mb-1.5 block text-[13px] font-medium text-text-secondary">
-          图标类型
-        </legend>
-        <div class="flex gap-4">
-          <label class="flex cursor-pointer items-center gap-1 text-sm">
-            <input v-model="iconType" type="radio" value="online">
-            <span>在线</span>
-          </label>
-          <label class="flex cursor-pointer items-center gap-1 text-sm">
-            <input v-model="iconType" type="radio" value="solid">
-            <span>纯色</span>
-          </label>
-          <label class="flex cursor-pointer items-center gap-1 text-sm">
-            <input v-model="iconType" type="radio" value="upload">
-            <span>上传</span>
-          </label>
-        </div>
-      </fieldset>
-
-      <!-- Conditional: solid color picker -->
-      <div v-if="iconType === 'solid'" class="mb-4 block">
-        <span class="mb-1.5 block text-[13px] font-medium text-text-secondary">颜色</span>
-        <input v-model="solidColor" type="color" class="h-8 w-11 cursor-pointer rounded-md border border-border bg-transparent p-0.5">
+    <!-- Icon type -->
+    <fieldset class="mb-4 block border-none p-0">
+      <legend class="mb-1.5 block text-[13px] font-medium text-text-secondary">
+        图标类型
+      </legend>
+      <div class="flex gap-4">
+        <label class="flex cursor-pointer items-center gap-1 text-sm">
+          <input v-model="iconType" type="radio" value="online">
+          <span>在线</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-1 text-sm">
+          <input v-model="iconType" type="radio" value="solid">
+          <span>纯色</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-1 text-sm">
+          <input v-model="iconType" type="radio" value="upload">
+          <span>上传</span>
+        </label>
       </div>
+    </fieldset>
 
-      <!-- Conditional: upload file input + preview -->
-      <div v-if="iconType === 'upload'" class="mb-4 block">
-        <span class="mb-1.5 block text-[13px] font-medium text-text-secondary">图标文件</span>
-        <input type="file" accept="image/*" @change="handleFileChange">
-        <div v-if="uploadPreview" class="mt-2">
-          <img :src="uploadPreview" class="h-11 w-11 rounded-[10px] bg-border object-contain" alt="预览">
-        </div>
+    <!-- Conditional: solid color picker -->
+    <div v-if="iconType === 'solid'" class="mb-4 block">
+      <span class="mb-1.5 block text-[13px] font-medium text-text-secondary">颜色</span>
+      <input v-model="solidColor" type="color" class="h-8 w-11 cursor-pointer rounded-md border border-border bg-transparent p-0.5">
+    </div>
+
+    <!-- Conditional: upload file input + preview -->
+    <div v-if="iconType === 'upload'" class="mb-4 block">
+      <span class="mb-1.5 block text-[13px] font-medium text-text-secondary">图标文件</span>
+      <input type="file" accept="image/*" @change="handleFileChange">
+      <div v-if="uploadPreview" class="mt-2">
+        <img :src="uploadPreview" class="h-11 w-11 rounded-[10px] bg-border object-contain" alt="预览">
       </div>
+    </div>
 
-      <!-- Conditional: online helper -->
-      <p v-if="iconType === 'online'" class="-mt-2 mb-4 text-xs text-text-secondary">
-        将自动从网站获取 favicon 图标
-      </p>
-
-      <!-- Actions -->
-      <div class="mt-5 flex justify-end gap-2">
-        <button
-          type="button"
-          class="cursor-pointer rounded-lg border-none bg-white/10 px-5 py-2 text-sm text-text-primary transition-opacity hover:opacity-85"
-          @click="handleCancel"
-        >
-          取消
-        </button>
-        <button
-          type="button"
-          class="cursor-pointer rounded-lg border-none bg-accent px-5 py-2 text-sm text-white transition-opacity hover:opacity-85"
-          @click="handleSave"
-        >
-          保存
-        </button>
-      </div>
-    </DialogContent>
-  </DialogRoot>
+    <!-- Conditional: online helper -->
+    <p v-if="iconType === 'online'" class="-mt-2 mb-4 text-xs text-text-secondary">
+      将自动从网站获取 favicon 图标
+    </p>
+  </FormDialog>
 </template>
