@@ -1,6 +1,6 @@
-import { defineStore } from '@/utils/storage'
+import { defineIndexedDB } from '@/utils/indexedDB'
 
-const iconStore = defineStore<{ id: string, data: string }>({
+const iconStore = defineIndexedDB<{ id: string, data: string }>({
     dbName: 'x3tab-data',
     storeName: 'icons'
 })
