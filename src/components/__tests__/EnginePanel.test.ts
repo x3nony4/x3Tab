@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 import { ref, nextTick } from 'vue'
 import { PopoverRoot } from 'reka-ui'
 import { fakeBrowser } from 'wxt/testing'
@@ -13,10 +14,20 @@ const defaults: SearchEngine[] = [
 
 const flush = () => new Promise(r => setTimeout(r))
 
+function bodyButtons(): NodeListOf<HTMLButtonElement> {
+  return document.body.querySelectorAll('button')
+}
+
+function bodyTextInputs(): NodeListOf<HTMLInputElement> {
+  return document.body.querySelectorAll('input[type="text"]')
+}
+
+let wrapper: VueWrapper<unknown>
+
 function mountPanel(open = true) {
     const showToastMock = vi.fn()
     const onSelectMock = vi.fn()
-    const wrapper = mount(
+    wrapper = mount(
         {
             components: { PopoverRoot, EnginePanel },
             template: `
@@ -30,6 +41,7 @@ function mountPanel(open = true) {
             },
         },
         {
+            attachTo: document.body,
             global: {
                 provide: { showToast: showToastMock },
             },
@@ -40,8 +52,11 @@ function mountPanel(open = true) {
 
 beforeEach(async () => {
     await fakeBrowser.reset()
-    // Seed default engines into storage
     await browser.storage.local.set({ 'engines': [...defaults] })
+})
+
+afterEach(() => {
+  if (wrapper) wrapper.unmount()
 })
 
 describe('EnginePanel', () => {
@@ -62,26 +77,25 @@ describe('EnginePanel', () => {
 
     // ── Engine items ──
     it('renders all engines from storage', async () => {
-        const { wrapper } = mountPanel()
+        mountPanel()
         await nextTick()
         await flush()
         const items = wrapper.findAll('.engine-item')
-        // 2 engines + 1 add button = 3 items
         expect(items).toHaveLength(2)
         expect(wrapper.find('.add-btn-item').exists()).toBe(true)
     })
 
     it('shows engine initial letter in icon', async () => {
-        const { wrapper } = mountPanel()
+        mountPanel()
         await nextTick()
         await flush()
         const icons = wrapper.findAll('.engine-icon')
-        expect(icons[0].text()).toBe('B') // Baidu
-        expect(icons[1].text()).toBe('G') // Google
+        expect(icons[0].text()).toBe('B')
+        expect(icons[1].text()).toBe('G')
     })
 
     it('shows engine name', async () => {
-        const { wrapper } = mountPanel()
+        mountPanel()
         await nextTick()
         await flush()
         const names = wrapper.findAll('.engine-item .engine-name')
@@ -90,7 +104,7 @@ describe('EnginePanel', () => {
     })
 
     it('add button shows add icon and "添加" label', async () => {
-        const { wrapper } = mountPanel()
+        mountPanel()
         await nextTick()
         await flush()
         const addIcon = wrapper.find('.add-icon')
@@ -101,7 +115,7 @@ describe('EnginePanel', () => {
 
     // ── Select engine ──
     it('emits select when engine clicked', async () => {
-        const { wrapper, onSelectMock } = mountPanel()
+        const { onSelectMock } = mountPanel()
         await nextTick()
         await flush()
         await wrapper.findAll('.engine-item')[0].trigger('click')
@@ -111,141 +125,135 @@ describe('EnginePanel', () => {
 
     // ── Delete engine ──
     it('shows delete button only when engines > 1', async () => {
-        const { wrapper } = mountPanel()
+        mountPanel()
         await nextTick()
         await flush()
         const delButtons = wrapper.findAll('.del-btn')
-        expect(delButtons).toHaveLength(2) // both engines deletable
+        expect(delButtons).toHaveLength(2)
     })
 
     it('does not show delete buttons when only 1 engine', async () => {
         await browser.storage.local.set({ 'engines': [defaults[0]] })
-        const { wrapper } = mountPanel()
+        mountPanel()
         await nextTick()
         await flush()
-
         expect(wrapper.findAll('.del-btn')).toHaveLength(0)
     })
 
     it('shows toast when attempting to delete last engine', async () => {
-        // Mount with 1 engine — no delete buttons rendered, toast will fire if delete attempted
         await browser.storage.local.set({ 'engines': [defaults[0]] })
-        const { wrapper, showToastMock } = mountPanel()
+        const { showToastMock } = mountPanel()
         await nextTick()
         await flush()
-
-        // No delete button when only 1 engine
         expect(wrapper.findAll('.del-btn')).toHaveLength(0)
-        // Toast not called yet (no delete attempted, no button to click)
         expect(showToastMock).not.toHaveBeenCalled()
     })
 
-    // ── Add engine form ──
+    // ── Add engine form (portal — queries document.body) ──
     it('opens add form when + is clicked', async () => {
-        const { wrapper } = mountPanel()
+        mountPanel()
         await nextTick()
         await flush()
         await wrapper.find('.add-btn-item').trigger('click')
         await nextTick()
-        // DialogContent renders form
-        expect(wrapper.find('input[type="text"]').exists()).toBe(true)
+        expect(bodyTextInputs().length).toBeGreaterThanOrEqual(2)
     })
 
     it('adds engine after valid form submit', async () => {
-        const { wrapper } = mountPanel()
+        mountPanel()
         await nextTick()
         await flush()
 
-        // Open form
         await wrapper.find('.add-btn-item').trigger('click')
         await nextTick()
 
-        // Fill form
-        const inputs = wrapper.findAll('input[type="text"]')
-        await inputs[0].setValue('GitHub')
-        await inputs[1].setValue('https://github.com/search?q=%s')
+        const inputs = bodyTextInputs()
+        inputs[0].value = 'GitHub'
+        inputs[0].dispatchEvent(new Event('input'))
+        inputs[1].value = 'https://github.com/search?q=%s'
+        inputs[1].dispatchEvent(new Event('input'))
 
-        // Submit — find confirm button by text
-        const buttons = wrapper.findAll('button')
-        const confirmBtn = buttons.find(b => b.text() === '添加')
-        await confirmBtn!.trigger('click')
+        const buttons = Array.from(bodyButtons())
+        const confirmBtn = buttons.find(b => b.textContent === '添加')
+        confirmBtn!.click()
         await nextTick()
         await flush()
 
-        // Engine count increased
-        const items = wrapper.findAll('.engine-item')
-        expect(items).toHaveLength(3) // 3 engines
+        expect(wrapper.findAll('.engine-item')).toHaveLength(3)
     })
 
     it('shows error when name is empty', async () => {
-        const { wrapper } = mountPanel()
+        mountPanel()
         await nextTick()
         await flush()
 
         await wrapper.find('.add-btn-item').trigger('click')
         await nextTick()
 
-        const buttons = wrapper.findAll('button')
-        const confirmBtn = buttons.find(b => b.text() === '添加')
-        await confirmBtn!.trigger('click')
+        const buttons = Array.from(bodyButtons())
+        const confirmBtn = buttons.find(b => b.textContent === '添加')
+        confirmBtn!.click()
         await nextTick()
 
-        expect(wrapper.html()).toContain('名称不能为空')
+        expect(document.body.textContent).toContain('名称不能为空')
     })
 
     it('shows error when url template missing %s', async () => {
-        const { wrapper } = mountPanel()
+        mountPanel()
         await nextTick()
         await flush()
 
         await wrapper.find('.add-btn-item').trigger('click')
         await nextTick()
 
-        const inputs = wrapper.findAll('input[type="text"]')
-        await inputs[0].setValue('GitHub')
-        await inputs[1].setValue('https://github.com/search')
+        const inputs = bodyTextInputs()
+        inputs[0].value = 'GitHub'
+        inputs[0].dispatchEvent(new Event('input'))
+        inputs[1].value = 'https://github.com/search'
+        inputs[1].dispatchEvent(new Event('input'))
 
-        const buttons = wrapper.findAll('button')
-        const confirmBtn = buttons.find(b => b.text() === '添加')
-        await confirmBtn!.trigger('click')
+        const buttons = Array.from(bodyButtons())
+        const confirmBtn = buttons.find(b => b.textContent === '添加')
+        confirmBtn!.click()
         await nextTick()
 
-        expect(wrapper.html()).toContain('URL 模板必须包含 %s 占位符')
+        expect(document.body.textContent).toContain('URL 模板必须包含 %s 占位符')
     })
 
     it('cancels add form without adding engine', async () => {
-        const { wrapper } = mountPanel()
+        mountPanel()
         await nextTick()
         await flush()
 
         await wrapper.find('.add-btn-item').trigger('click')
         await nextTick()
 
-        const buttons = wrapper.findAll('button')
-        const cancelBtn = buttons.find(b => b.text() === '取消')
-        await cancelBtn!.trigger('click')
+        const buttons = Array.from(bodyButtons())
+        const cancelBtn = buttons.find(b => b.textContent === '取消')
+        cancelBtn!.click()
         await nextTick()
 
-        // Form should be closed, still 2 engines
         expect(wrapper.findAll('.engine-item')).toHaveLength(2)
     })
 
     // ── Persistence ──
     it('persists engine list to storage after add', async () => {
-        const { wrapper } = mountPanel()
+        mountPanel()
         await nextTick()
         await flush()
 
         await wrapper.find('.add-btn-item').trigger('click')
         await nextTick()
 
-        const inputs = wrapper.findAll('input[type="text"]')
-        await inputs[0].setValue('NPM')
-        await inputs[1].setValue('https://www.npmjs.com/search?q=%s')
+        const inputs = bodyTextInputs()
+        inputs[0].value = 'NPM'
+        inputs[0].dispatchEvent(new Event('input'))
+        inputs[1].value = 'https://www.npmjs.com/search?q=%s'
+        inputs[1].dispatchEvent(new Event('input'))
 
-        const buttons = wrapper.findAll('button')
-        const confirmBtn = buttons.find(b => b.text() === '添加')
-        await confirmBtn!.trigger('click')
+        const buttons = Array.from(bodyButtons())
+        const confirmBtn = buttons.find(b => b.textContent === '添加')
+        confirmBtn!.click()
         await flush()
 
         const result = await browser.storage.local.get('engines')
@@ -256,7 +264,7 @@ describe('EnginePanel', () => {
     })
 
     it('persists engine list to storage after delete', async () => {
-        const { wrapper } = mountPanel()
+        mountPanel()
         await nextTick()
         await flush()
 
@@ -268,20 +276,25 @@ describe('EnginePanel', () => {
         expect(stored).toHaveLength(1)
     })
 
-    // ── Close add form on overlay backdrop click ──
-    it('closes add form when overlay backdrop clicked', async () => {
-        const { wrapper } = mountPanel()
+    // ── Close add form via cancel emit ──
+    it('closes add form when cancel button clicked', async () => {
+        mountPanel()
         await nextTick()
         await flush()
 
         await wrapper.find('.add-btn-item').trigger('click')
         await nextTick()
 
-        // Reka DialogOverlay closes on click — verify the form opened first
-        expect(wrapper.find('input[type="text"]').exists()).toBe(true)
+        // Form is open via FormDialog portal — title visible in body
+        expect(document.body.textContent).toContain('添加搜索引擎')
 
-        // Note: Reka DialogOverlay's internal pointerdown handler requires
-        // document.body attachment, which is not available in jsdom.
-        // Trust Reka's built-in behavior for Escape/overlay dismissal.
+        const buttons = Array.from(bodyButtons())
+        const cancelBtn = buttons.find(b => b.textContent === '取消')
+        cancelBtn!.click()
+        await nextTick()
+        await flush()
+
+        // Form closed — dialog title removed from body
+        expect(document.body.textContent).not.toContain('添加搜索引擎')
     })
 })
