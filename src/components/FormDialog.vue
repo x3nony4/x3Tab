@@ -9,6 +9,7 @@ const props = withDefaults(defineProps<{
     confirmLabel?: string
     cancelLabel?: string
 }>(), {
+    width: 360,
     confirmLabel: '保存',
     cancelLabel: '取消'
 })
@@ -24,11 +25,7 @@ const isOpen = computed({
     set: val => emit('update:open', val)
 })
 
-const widthClass = computed(() => {
-    if (props.width === undefined)
-        return 'w-full'
-    return `w-[${props.width}px]`
-})
+const widthStyle = computed(() => `${props.width}px`)
 
 function onConfirm() {
     emit('confirm')
@@ -44,8 +41,8 @@ function onCancel() {
     <DialogPortal>
       <DialogOverlay class="fixed inset-0 z-200 bg-black/40" />
       <DialogContent
-        :class="widthClass"
-        class="fixed left-1/2 top-1/2 z-200 -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-bg p-6 text-text-primary"
+        :style="{ width: widthStyle }"
+        class="fixed left-1/2 top-1/2 z-200 max-w-[90vw] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-bg p-6 text-text-primary"
       >
         <DialogTitle class="mb-5 text-lg font-semibold">
           {{ title }}

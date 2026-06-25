@@ -102,16 +102,18 @@ describe('FormDialog', () => {
   })
 
   // ── Width ──
-  it('uses w-full when width not provided', async () => {
+  it('applies default width 360px when width not provided', async () => {
     mountDialog({ open: true })
     await nextTick()
-    expect(dialogEl()?.className).toContain('w-full')
+    const el = dialogEl() as HTMLElement | null
+    expect(el?.style.width).toBe('360px')
   })
 
-  it('uses w-[Npx] when width provided', async () => {
-    mountDialog({ open: true, width: 360 })
+  it('applies custom width when width provided', async () => {
+    mountDialog({ open: true, width: 400 })
     await nextTick()
-    expect(dialogEl()?.className).toContain('w-[360px]')
+    const el = dialogEl() as HTMLElement | null
+    expect(el?.style.width).toBe('400px')
   })
 
   // ── Custom actions slot ──
